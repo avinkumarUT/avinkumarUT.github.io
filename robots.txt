@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://avinkumarUT.github.io/sitemap.xml
+Sitemap: https://avinkumarut.github.io/sitemap.xml
