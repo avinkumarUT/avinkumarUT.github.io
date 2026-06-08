@@ -32,11 +32,11 @@ Before starting my graduate studies, I obtained my MS degree from UT Austin and 
 <table class="table table-sm table-borderless">
   <!-- Add news items below. Copy a <tr> block. Sort manually, newest first. -->
   <tr>
-    <th scope="row" style="width: 20%">June 2026</th>
+    <th scope="row" style="width: 16.67%">June 2026</th>
     <td>I will be in Seattle at <a href="https://www.amazon.science">Amazon Science</a> working on Reasoning LLMs for the upcoming summers!</td>
   </tr>
   <tr>
-    <th scope="row" style="width: 20%">May 2026</th>
+    <th scope="row" style="width: 16.67%">May 2026</th>
     <td>Presenting our work <a href="https://openreview.net/pdf?id=CV52m9NJFK">HELIOS</a> at <a href="https://mlsys.org">MLSys 2026</a></td>
   </tr>
 </table>
