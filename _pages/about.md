@@ -2,7 +2,7 @@
 layout: about
 title: About Me
 permalink: /
-subtitle: PhD Student, Electrical and Computer Engineering, The University of Texas at Austin.
+subtitle: /
 
 profile:
   align: right
