@@ -26,4 +26,4 @@ I am a PhD student in [Electrical and Computer Engineering](https://ece.utexas.e
 
 My research focuses on building efficient systems for ML, with a current emphasis on Large Language Models (LLMs). My work is supported by the [Amazon AI PhD Fellowship](https://www.amazon.science/news/amazon-launches-68-million-ai-phd-fellowship-program).
 
-Before starting my graduate studies, I obtained my MS from UT Austin and my Bachelor's from [NITK Surathkal](https://www.nitk.ac.in). I also worked for three years at NVIDIA as a Senior GPU Architect.
+Before starting my graduate studies, I obtained my MS degree from UT Austin and my Bachelors degree from [NITK Surathkal](https://www.nitk.ac.in). I also worked for three years at NVIDIA as a Senior GPU Architect.
