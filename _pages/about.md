@@ -33,7 +33,7 @@ Before starting my graduate studies, I obtained my MS degree from UT Austin and 
   <!-- Add news items below. Copy a <tr> block. Sort manually, newest first. -->
   <tr>
     <th scope="row" style="width: 16.67%">June 2026</th>
-    <td>I will be in Seattle at <a href="https://www.amazon.science">Amazon Science</a> working on Reasoning LLMs for the upcoming summers!</td>
+    <td>I will be in Seattle at <a href="https://www.amazon.science">Amazon Science</a> working on Reasoning LLMs for the upcoming summer!</td>
   </tr>
   <tr>
     <th scope="row" style="width: 16.67%">May 2026</th>
