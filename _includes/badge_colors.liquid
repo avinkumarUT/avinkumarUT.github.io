@@ -1,0 +1,19 @@
+<style>
+  abbr.badge { background-color: #6b7280; color: white; }
+  abbr.badge-MLSys { background-color: #14b8a6; }
+  abbr.badge-ICML { background-color: #2563eb; }
+  abbr.badge-ICASSP { background-color: #ea580c; }
+  abbr.badge-ISCA { background-color: #7c3aed; }
+  abbr.badge-NeurIPS { background-color: #dc2626; }
+  abbr.badge-arXiv,
+  abbr.badge-Arxiv,
+  abbr.badge-arxiv { background-color: #b31b1b; }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('abbr.badge').forEach(function (el) {
+      var venue = el.textContent.trim();
+      if (venue) el.classList.add('badge-' + venue);
+    });
+  });
+</script>

@@ -9,7 +9,7 @@ profile:
   image: prof_pic.jpg
   image_circular: false # crops the image to make it circular
   more_info: >
-    <p>Office: EER 5.884B | Email: avinkumar@utexas.edu</p>
+    <p style="font-family: Cambria, Georgia, serif; font-weight: bold;">Office: EER 5.884B | Email: avinkumar@utexas.edu</p>
 
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
@@ -28,3 +28,5 @@ I am a PhD student in [Electrical and Computer Engineering](https://ece.utexas.e
 My research focuses on building efficient systems for ML, with a current emphasis on Large Language Models (LLMs). My work is supported by the [Amazon AI PhD Fellowship](https://www.amazon.science/news/amazon-launches-68-million-ai-phd-fellowship-program) and the [Professor Edith Clarke Fellowship](https://www.invent.org/blog/inventors/edith-clarke-calculator).
 
 Before starting my graduate studies, I obtained my MS degree from UT Austin and my Bachelors degree from [NITK Surathkal](https://www.nitk.ac.in). I also worked for three years at NVIDIA as a Senior GPU Architect.
+
+{% include badge_colors.liquid %}
