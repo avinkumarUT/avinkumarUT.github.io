@@ -1,13 +1,26 @@
 <style>
-  abbr.badge { background-color: #6b7280 !important; color: white !important; }
-  abbr.badge-MLSys { background-color: #14b8a6 !important; }
-  abbr.badge-ICML { background-color: #2563eb !important; }
-  abbr.badge-ICASSP { background-color: #ea580c !important; }
-  abbr.badge-ISCA { background-color: #7c3aed !important; }
-  abbr.badge-NeurIPS { background-color: #dc2626 !important; }
-  abbr.badge-arXiv,
-  abbr.badge-Arxiv,
-  abbr.badge-arxiv { background-color: #b31b1b !important; }
+  /* High-specificity overrides to beat .publications ol.bibliography li .abbr abbr from al_folio_core's main.css */
+  .publications ol.bibliography li .abbr abbr.badge,
+  abbr.badge {
+    background-color: #6b7280 !important;
+    color: white !important;
+  }
+  .publications ol.bibliography li .abbr abbr.badge.badge-MLSys,
+  abbr.badge.badge-MLSys { background-color: #14b8a6 !important; }
+  .publications ol.bibliography li .abbr abbr.badge.badge-ICML,
+  abbr.badge.badge-ICML { background-color: #2563eb !important; }
+  .publications ol.bibliography li .abbr abbr.badge.badge-ICASSP,
+  abbr.badge.badge-ICASSP { background-color: #ea580c !important; }
+  .publications ol.bibliography li .abbr abbr.badge.badge-ISCA,
+  abbr.badge.badge-ISCA { background-color: #7c3aed !important; }
+  .publications ol.bibliography li .abbr abbr.badge.badge-NeurIPS,
+  abbr.badge.badge-NeurIPS { background-color: #dc2626 !important; }
+  .publications ol.bibliography li .abbr abbr.badge.badge-arXiv,
+  .publications ol.bibliography li .abbr abbr.badge.badge-Arxiv,
+  .publications ol.bibliography li .abbr abbr.badge.badge-arxiv,
+  abbr.badge.badge-arXiv,
+  abbr.badge.badge-Arxiv,
+  abbr.badge.badge-arxiv { background-color: #b31b1b !important; }
 
   h2 > a[href="/news/"],
   h2 > a[href="/publications/"] {
@@ -15,10 +28,24 @@
   }
 </style>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('abbr.badge').forEach(function (el) {
-      var venue = el.textContent.trim();
-      if (venue) el.classList.add('badge-' + venue);
-    });
-  });
+  (function () {
+    function applyBadgeClasses() {
+      document.querySelectorAll('abbr.badge').forEach(function (el) {
+        var venue = el.textContent.trim();
+        if (!venue) return;
+        var cls = 'badge-' + venue;
+        if (!el.classList.contains(cls)) el.classList.add(cls);
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', applyBadgeClasses);
+    } else {
+      applyBadgeClasses();
+    }
+    window.addEventListener('load', applyBadgeClasses);
+    var pubs = document.querySelector('.publications');
+    if (pubs && typeof MutationObserver !== 'undefined') {
+      new MutationObserver(applyBadgeClasses).observe(pubs, { childList: true, subtree: true });
+    }
+  })();
 </script>
