@@ -22,9 +22,8 @@ latest_posts:
   enabled: false
 ---
 
-I'm a PhD student in Electrical and Computer Engineering at The University of Texas at Austin.
+I am a PhD student in [Electrical and Computer Engineering](https://ece.utexas.edu) at The University of Texas at Austin advised by [Prof. Poulami Das](https://www.poulamidas.com).
 
-<!-- Write a longer biography here: research interests, advisor, lab, what you're working on, etc.
-     Add publications to `_bibliography/papers.bib`, news items to `_news/`, and projects to `_projects/`.
-     Replace the photo at `assets/img/prof_pic.jpg`. -->
+My research focuses on building efficient systems for ML, with a current emphasis on Large Language Models (LLMs). My work is supported by the [Amazon AI PhD Fellowship](https://www.amazon.science/news/amazon-launches-68-million-ai-phd-fellowship-program).
 
+Before starting my graduate studies, I obtained my MS from UT Austin and my Bachelor's from [NITK Surathkal](https://www.nitk.ac.in). I also worked for three years at NVIDIA as a Senior GPU Architect.
