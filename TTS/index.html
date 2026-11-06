@@ -74,7 +74,7 @@
     p { margin: 0 0 16px; }
     .lead { font-size: 1.12rem; color: #33374a; }
     .center { text-align: center; }
-    .hl { background: linear-gradient(transparent 62%, rgba(255,157,60,.4) 62%); font-weight: 600; }
+    .hl { font-weight: 600; color: var(--accent); }
 
     .tldr { margin: -44px auto 0; position: relative; z-index: 5; background: var(--card); border-radius: 18px; padding: 26px 30px;
             box-shadow: 0 18px 50px rgba(13,16,32,.16); border: 1px solid var(--line); font-size: 1.1rem; }
@@ -88,32 +88,43 @@
     figure.narrow { max-width: 560px; margin-left: auto; margin-right: auto; }
     figcaption { color: var(--muted); font-size: .9rem; margin-top: 10px; text-align: center; }
 
-    /* demo */
-    .demo { background: linear-gradient(160deg, var(--night), var(--night2)); color: #fff; border-radius: 20px; padding: 26px; margin-top: 28px;
-            box-shadow: 0 20px 50px rgba(13,16,32,.25); }
-    .demo-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
-    .demo-head .ttl { font-weight: 700; }
-    .demo-head .cnt { font-family: 'JetBrains Mono', monospace; font-size: .85rem; color: #ffd9b0; }
-    .lane { display: grid; grid-template-columns: 150px 1fr 110px; gap: 14px; align-items: center; padding: 12px 0; }
-    .lane + .lane { border-top: 1px solid rgba(255,255,255,.1); }
-    .lane .name { font-weight: 700; font-size: .95rem; }
-    .lane .name small { display: block; font-weight: 400; color: rgba(255,255,255,.6); font-size: .76rem; }
-    .toks { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
-    .tok { height: 34px; border-radius: 7px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); transition: background .25s, transform .25s, opacity .25s; }
-    .tok.draft { background: rgba(255,255,255,.32); }
-    .tok.ok { background: var(--ok); border-color: var(--ok); transform: scale(1.04); }
-    .tok.bad { background: var(--bad); border-color: var(--bad); }
-    .tok.dead { opacity: .25; }
-    .al { text-align: right; font-family: 'JetBrains Mono', monospace; }
-    .al b { font-size: 1.5rem; display: block; line-height: 1.1; }
-    .al span { font-size: .72rem; color: rgba(255,255,255,.6); }
-    .bar { grid-column: 2 / 4; height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; margin-top: -4px; }
-    .bar i { display: block; height: 100%; width: 0; border-radius: 3px; transition: width .4s; }
-    #barA i { background: var(--bad); } #barB i { background: linear-gradient(90deg, var(--accent2), var(--ok)); }
-    .flash { animation: flash .5s; } @keyframes flash { 0% { text-shadow: 0 0 14px var(--accent2); color: var(--accent2);} 100% { text-shadow: none; } }
-    .demo-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: .78rem; color: rgba(255,255,255,.6); }
-    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 5px 0 12px; }
-    @media (max-width: 640px) { .lane { grid-template-columns: 1fr; } .al { text-align: left; } .bar { grid-column: 1; } }
+    /* interactive charts */
+    .viz { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px 14px; box-shadow: 0 6px 24px rgba(13,16,32,.06);
+           position: relative; margin: 26px 0 10px;
+           --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --grid: #eceef3; --axis: #c9cdd8; }
+    .viz h4 { margin: 0 0 2px; font-size: 1.02rem; font-weight: 700; color: var(--ink); }
+    .viz .sub { margin: 0 0 12px; font-size: .86rem; color: var(--muted); }
+    .viz .ctl { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; margin-bottom: 10px; }
+    .viz .ctl .grp { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .viz .ctl .lab { font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .seg { display: inline-flex; flex-wrap: wrap; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+    .seg button { font: inherit; font-size: .84rem; font-weight: 500; color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: background .15s, color .15s; }
+    .seg button:hover { color: var(--ink); }
+    .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(13,16,32,.14); }
+    .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .viz .lg { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: .84rem; color: var(--ink); margin: 2px 0 4px; }
+    .viz .lg span { display: inline-flex; align-items: center; gap: 7px; }
+    .viz .lg i { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid; border-radius: 2px; }
+    .viz .lg i.dot { width: 9px; height: 9px; border: 0; border-radius: 50%; }
+    .viz .lg i.box { width: 12px; height: 9px; border: 0; border-radius: 2px; opacity: .55; }
+    .viz svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .viz svg text { font-family: 'Inter', sans-serif; fill: var(--muted); font-size: 12px; }
+    .viz svg text.strong { fill: var(--ink); font-weight: 600; }
+    .viz .plot { animation: vizin .3s ease; } @keyframes vizin { from { opacity: 0; } to { opacity: 1; } }
+    .viz .tip { position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px;
+                box-shadow: 0 8px 26px rgba(13,16,32,.16); font-size: .8rem; color: var(--muted); min-width: 150px; opacity: 0; transition: opacity .12s; z-index: 3; }
+    .viz .tip.on { opacity: 1; }
+    .viz .tip .hd { font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+    .viz .tip .r { display: flex; align-items: center; gap: 8px; line-height: 1.55; white-space: nowrap; }
+    .viz .tip .r i { width: 12px; border-top: 2.5px solid; border-radius: 2px; flex: none; }
+    .viz .tip .r b { color: var(--ink); font-weight: 600; min-width: 34px; font-variant-numeric: tabular-nums; }
+    .viz .note { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
+    .viz .note code { font-family: 'JetBrains Mono', monospace; font-size: .76rem; }
+    details.setup { margin: 14px 0 0; font-size: .88rem; color: var(--muted); }
+    details.setup summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+    details.setup ul { margin: 8px 0 0; padding-left: 20px; } details.setup li { margin: 3px 0; }
+    details.setup code { font-family: 'JetBrains Mono', monospace; font-size: .8rem; }
+    @media (prefers-reduced-motion: reduce) { .viz .plot { animation: none; } }
 
     /* steps */
     .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 28px; }
@@ -197,7 +208,7 @@
 
 <div class="wrap">
   <div class="tldr rv">
-    <b class="t">TL;DR</b> &nbsp;Speculative decoding makes LLMs faster by letting a small draft model guess tokens that the big target model then checks. But the draft was trained on short text, and on long generations its guesses stop landing. <b>TTS</b> notices that every check <span class="hl">already tells the draft exactly what the target wanted</span>, and uses that signal to update the draft on the fly. No new data, no extra target calls, and the output stays exactly the target's.
+    <b class="t">TL;DR</b> &nbsp;Speculative decoding accelerates LLM inference by using a smaller, less accurate draft model to generate tokens and the larger target model to verify them. We observe that draft models are typically trained offline on short sequences (e.g., <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a>, <a href="https://github.com/thunlp/UltraChat" target="_blank" rel="noopener">UltraChat</a>), but are forced to match the target on much longer outputs at inference. This is exacerbated in reasoning models, which produce tens of thousands of tokens before the final answer. Our key insight is that the verification step already invokes the target model for each draft token, <span class="hl">providing the training signal needed to adapt the draft at no additional cost</span>. <b>Test-Time Speculation (TTS)</b> uses this signal to continuously adapt the draft at test time.
   </div>
 </div>
 
@@ -219,15 +230,44 @@
     <h2 class="rv">Speculators run out of steam</h2>
     <p class="lead rv">The speedup from speculative decoding comes down to one number: the <b>acceptance length</b>, or how many draft tokens the target accepts per round. An acceptance length near 1 means the draft is contributing nothing.</p>
     <p class="rv">That is where today's best speculators end up. DFlash, EAGLE-3 and PARD all start strong, then lose ground as the response grows. On LiveCodeBench with Qwen3-8B, EAGLE-3's acceptance length falls to 1.1 beyond about 20K tokens. Reasoning, coding and agentic workloads routinely produce outputs that long.</p>
-    <figure class="rv">
-      <div class="fig"><img src="static/images/qwen3-8B-AL.png" alt="Acceptance length over output length for DFlash, EAGLE-3 and PARD on Qwen3-8B"></div>
-      <figcaption>Acceptance length on four tasks with (a) DFlash, (b) EAGLE-3 and (c) PARD on Qwen3-8B. It drops steadily as generation length grows.</figcaption>
-    </figure>
-    <p class="rv">A bigger target does not fix it. The same decline shows up on Qwen3.5-35B, Qwen3.6-35B and Qwen3.5-122B.</p>
-    <figure class="rv">
-      <div class="fig"><img src="static/images/qwen3-scalability-AL.png" alt="Acceptance length over output length for larger Qwen targets"></div>
-      <figcaption>DFlash on (a) Qwen3.5-35B, (b) Qwen3.6-35B and (c) Qwen3.5-122B.</figcaption>
-    </figure>
+    <div class="viz rv" id="vizAL">
+      <h4>Acceptance length along the response</h4>
+      <p class="sub">Tokens accepted per round, measured at each point of the output; 1 means no speedup. Pick a speculator and a target model.</p>
+      <div class="ctl">
+        <div class="grp"><span class="lab">Speculator</span><div class="seg" id="alSpec" role="group" aria-label="Speculator"></div></div>
+        <div class="grp"><span class="lab">Target</span><div class="seg" id="alTgt" role="group" aria-label="Target model"></div></div>
+      </div>
+      <div class="lg" id="alLg"></div>
+      <svg id="alSvg" viewBox="0 0 880 380" role="img" aria-label="Line chart of acceptance length against output length for the selected speculator and target"></svg>
+      <div class="tip" id="alTip"></div>
+      <p class="note" id="alNote"></p>
+    </div>
+    <p class="rv">A bigger target does not fix it, and neither does a different speculator. The same decline shows up across every pair above, from 8B to 122B targets.</p>
+
+    <h3 class="rv" style="margin-top:38px">Trained on short text, used on long text</h3>
+    <p class="rv">Why does this happen? Speculators are trained offline on instruction-following data such as <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a> and <a href="https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k" target="_blank" rel="noopener">UltraChat</a>, where a response is a few hundred tokens long. A reasoning model answering a benchmark question writes tens of thousands of tokens. The two barely overlap.</p>
+    <div class="viz rv" id="vizLen">
+      <h4>Response length: training data versus reasoning outputs</h4>
+      <p class="sub">Tokens on a log scale. Each dot is one response from Qwen3-8B with thinking enabled.</p>
+      <div class="ctl">
+        <div class="grp"><span class="lab">Training data measured as</span><div class="seg" id="lenKind" role="group" aria-label="Training data unit">
+          <button type="button" data-k="resp" aria-pressed="true">Assistant responses</button><button type="button" data-k="conv" aria-pressed="false">Whole conversations</button></div></div>
+      </div>
+      <div class="lg"><span><i class="box" style="background:var(--s1)"></i>Speculator training data</span><span><i class="dot" style="background:var(--s2)"></i>Reasoning benchmark outputs</span></div>
+      <svg id="lenSvg" viewBox="0 0 880 372" role="img" aria-label="Distribution of response lengths in ShareGPT and UltraChat compared with output lengths on four reasoning benchmarks"></svg>
+      <div class="tip" id="lenTip"></div>
+      <p class="note">Generation was capped at 36,864 tokens, so the longest outputs pile up at that limit.</p>
+    </div>
+    <details class="setup rv">
+      <summary>Experimental setup for these two plots</summary>
+      <ul>
+        <li><b>Serving stack:</b> vLLM <code>0.19.2rc1.dev208</code> (commit <code>1e9f19ca3</code>) with a small scheduler patch that logs the drafted and accepted tokens of every speculation round. PyTorch 2.11, NVIDIA H200 GPUs.</li>
+        <li><b>Decoding:</b> greedy (temperature 0), 16 speculative tokens per round, outputs capped at 36,864 tokens (16,384 for the Qwen3-30B-A3B runs). Thinking is enabled for Qwen targets and reasoning effort is high for GPT-OSS-120B.</li>
+        <li><b>Speculators:</b> public checkpoints. The checkpoint name is shown under the plot.</li>
+        <li><b>Acceptance length:</b> one plus the mean number of accepted draft tokens per round, averaged over 2K-token windows of output position. Windows that only a handful of responses reach are left out.</li>
+        <li><b>Lengths:</b> ShareGPT and UltraChat are tokenized with the Qwen3 tokenizer on a random sample of 20K conversations each. Benchmark output lengths come from the Qwen3-8B runs; speculative decoding is lossless, so they do not depend on the speculator.</li>
+      </ul>
+    </details>
   </div>
 </section>
 
@@ -251,29 +291,6 @@
     <h2 class="rv">The teacher is already in the room</h2>
     <p class="lead rv">Each round of speculative decoding runs the target over every draft token to verify it. That pass produces the target's full distribution at each position, which is exactly the supervision a distillation step needs. Standard speculative decoding uses it to accept or reject, then throws it away.</p>
     <p class="rv">TTS keeps it. The target is the <b>teacher</b>, the draft is the <b>student</b>, and each verified canvas is a <b>training sample</b>. After verification the draft takes one gradient step, then drafts again.</p>
-
-    <div class="demo rv" id="demo">
-      <div class="demo-head">
-        <span class="ttl"><i class="fas fa-play" style="font-size:.8em;margin-right:8px;color:var(--accent2)"></i>Watch a generation unfold</span>
-        <span class="cnt">output tokens: <span id="ntok">0</span></span>
-      </div>
-      <div class="lane">
-        <div class="name">Frozen draft<small>trained offline, never updated</small></div>
-        <div class="toks" id="lnA"></div>
-        <div class="al"><b id="alA">–</b><span>acceptance length</span></div>
-        <div class="bar" id="barA"><i></i></div>
-      </div>
-      <div class="lane">
-        <div class="name">Draft + TTS<small id="upd">one gradient step per round</small></div>
-        <div class="toks" id="lnB"></div>
-        <div class="al"><b id="alB">–</b><span>acceptance length</span></div>
-        <div class="bar" id="barB"><i></i></div>
-      </div>
-      <div class="demo-foot">
-        <span>Illustrative animation of the mechanism, not measured data. See the figures below for real results.</span>
-        <span class="legend"><i style="background:var(--ok)"></i>accepted<i style="background:var(--bad)"></i>rejected<i style="background:rgba(255,255,255,.25)"></i>discarded</span>
-      </div>
-    </div>
 
     <div class="steps">
       <div class="step rv"><div class="n">1</div><h3>Draft</h3><p>The current draft \(q_t\) proposes a canvas of \(C\) tokens, as in ordinary speculative decoding.</p></div>
@@ -433,50 +450,172 @@
   }
 
   // reveal
-  var demoOn = false;
   var io = new IntersectionObserver(function (es) {
     es.forEach(function (e) {
-      if (e.target.id === 'demo') demoOn = e.isIntersecting;
       if (!e.isIntersecting) return;
       e.target.classList.add('in');
       e.target.querySelectorAll('.num[data-to]').forEach(countUp);
-      if (e.target.id !== 'demo') io.unobserve(e.target);
+      io.unobserve(e.target);
     });
   }, { threshold: 0.12 });
   document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
 
-  // demo: illustrative simulation of the speculate-verify(-update) loop
-  var C = 8, MAXN = 24000;
-  function lane(id) { var el = document.getElementById(id), a = []; for (var i = 0; i < C; i++) { var d = document.createElement('div'); d.className = 'tok'; el.appendChild(d); a.push(d); } return a; }
-  var A = lane('lnA'), B = lane('lnB'), n = 0, emaA = null, emaB = null;
-  var elN = document.getElementById('ntok'), elA = document.getElementById('alA'), elB = document.getElementById('alB'),
-      bA = document.querySelector('#barA i'), bB = document.querySelector('#barB i'), upd = document.getElementById('upd');
-  function sample(p) { var k = 0; while (k < C && Math.random() < p) k++; return k; }
-  function paint(toks, k) {
-    toks.forEach(function (t, i) { t.className = 'tok draft'; });
-    setTimeout(function () {
-      toks.forEach(function (t, i) { t.className = 'tok ' + (i < k ? 'ok' : i === k ? 'bad' : 'dead'); });
-    }, 320);
+  // interactive charts (data: vLLM per-round logs + tokenized ShareGPT/UltraChat)
+  var D = {"bench":[["aime","AIME 2025"],["math500","MATH-500"],["olymp","OlympiadBench-Math"],["lcb","LiveCodeBench"]],"pairs":[{"spec":"DFlash","target":"Qwen3-8B","draft":"z-lab/Qwen3-8B-DFlash-b16","cap":36,"series":{"aime":[[1.0,3.48],[3.0,3.77],[5.0,3.67],[7.0,3.37],[9.0,3.12],[11.0,2.82],[13.0,2.68],[15.0,2.66],[17.0,2.35],[19.0,2.18],[21.0,2.15],[23.0,1.97],[25.0,1.88],[27.0,1.83],[29.0,1.83],[31.0,1.7],[33.0,1.67],[35.0,1.65]],"math500":[[1.0,3.67],[3.0,3.83],[5.0,3.73],[7.0,3.56],[9.0,3.1],[11.0,2.93],[13.0,2.71],[15.0,2.53],[17.0,2.43],[19.0,2.3],[21.0,2.08],[23.0,2.01],[25.0,1.84],[27.0,1.81]],"olymp":[[1.0,3.24],[3.0,3.48],[5.0,3.34],[7.0,3.19],[9.0,2.96],[11.0,2.62],[13.0,2.48],[15.0,2.55],[17.0,2.46],[19.0,2.49],[21.0,2.5],[23.0,2.35],[25.0,2.2],[27.0,2.27],[29.0,2.1],[31.0,2.05],[33.0,1.95],[35.0,1.79]],"lcb":[[1.0,2.99],[3.0,3.2],[5.0,3.15],[7.0,2.98],[9.0,2.81],[11.0,2.78],[13.0,2.79],[15.0,2.85],[17.0,2.76],[19.0,2.64],[21.0,2.63],[23.0,2.46],[25.0,2.31],[27.0,2.35],[29.0,2.15],[31.0,2.01],[33.0,1.94],[35.0,1.68]]}},{"spec":"DFlash","target":"Qwen3.5-35B-A3B","draft":"z-lab/Qwen3.5-35B-A3B-DFlash","cap":36,"series":{"aime":[[1.0,8.03],[3.0,14.96],[5.0,14.82],[7.0,14.59],[9.0,13.76],[11.0,11.95],[13.0,11.68],[15.0,11.14],[17.0,11.16],[19.0,10.91],[21.0,8.94],[23.0,6.15],[25.0,6.67],[27.0,5.31],[29.0,3.78],[31.0,3.53],[33.0,3.04],[35.0,2.07]],"math500":[[1.0,6.89],[3.0,6.82],[5.0,6.76],[7.0,6.9],[9.0,6.36],[11.0,5.33],[13.0,6.0],[15.0,7.11],[17.0,7.03],[19.0,7.63],[21.0,7.66],[23.0,7.64],[25.0,5.72],[27.0,5.68],[29.0,3.58],[31.0,2.9],[33.0,2.44],[35.0,1.98]],"olymp":[[1.0,5.83],[3.0,6.24],[5.0,6.4],[7.0,6.46],[9.0,6.51],[11.0,6.5],[13.0,6.42],[15.0,6.37],[17.0,6.47],[19.0,6.79],[21.0,7.01],[23.0,7.36],[25.0,7.89],[27.0,6.31],[29.0,5.5],[31.0,4.97],[33.0,3.61],[35.0,2.85]],"lcb":[[1.0,4.81],[3.0,5.04],[5.0,4.94],[7.0,5.02],[9.0,4.97],[11.0,5.03],[13.0,5.4],[15.0,5.38],[17.0,5.58],[19.0,5.8],[21.0,6.47],[23.0,7.06],[25.0,7.2],[27.0,7.66],[29.0,7.12],[31.0,5.29],[33.0,4.66],[35.0,3.66]]}},{"spec":"DFlash","target":"Qwen3.6-35B-A3B","draft":"z-lab/Qwen3.6-35B-A3B-DFlash","cap":36,"series":{"aime":[[1.0,7.94],[3.0,14.71],[5.0,14.65],[7.0,15.02],[9.0,15.14],[11.0,14.99],[13.0,13.57],[15.0,12.51],[17.0,11.8],[19.0,11.99],[21.0,7.91],[23.0,6.82],[25.0,6.11],[27.0,5.16],[29.0,3.08],[31.0,2.67],[33.0,2.26],[35.0,1.83]],"math500":[[1.0,6.85],[3.0,6.78],[5.0,6.76],[7.0,6.82],[9.0,6.87],[11.0,6.45],[13.0,6.49],[15.0,6.65],[17.0,6.43],[19.0,6.42],[21.0,6.47],[23.0,6.7],[25.0,5.47],[27.0,5.69],[29.0,5.11],[31.0,4.62],[33.0,2.8],[35.0,1.99]],"olymp":[[1.0,5.59],[3.0,5.94],[5.0,6.17],[7.0,6.14],[9.0,6.3],[11.0,6.04],[13.0,6.11],[15.0,5.99],[17.0,5.96],[19.0,6.08],[21.0,5.87],[23.0,5.63],[25.0,5.6],[27.0,4.99],[29.0,4.87],[31.0,4.38],[33.0,3.66],[35.0,2.94]],"lcb":[[1.0,4.67],[3.0,4.79],[5.0,4.89],[7.0,4.81],[9.0,4.84],[11.0,4.81],[13.0,4.99],[15.0,5.11],[17.0,4.79],[19.0,4.62],[21.0,4.36],[23.0,4.36],[25.0,4.37],[27.0,4.44],[29.0,4.67],[31.0,4.72],[33.0,4.8],[35.0,4.36]]}},{"spec":"DFlash","target":"Qwen3.5-122B-A10B","draft":"z-lab/Qwen3.5-122B-A10B-DFlash","cap":36,"series":{"aime":[[1.0,1.71],[3.0,1.86],[5.0,1.46],[7.0,1.4],[9.0,1.42],[11.0,1.39],[13.0,1.41],[15.0,1.44],[17.0,1.43],[19.0,1.27],[21.0,1.27],[23.0,1.33],[25.0,1.33],[27.0,1.31],[29.0,1.22],[31.0,1.18],[33.0,1.12],[35.0,1.13]],"math500":[[1.0,1.74],[3.0,1.62],[5.0,1.54],[7.0,1.44],[9.0,1.49],[11.0,1.49],[13.0,1.46],[15.0,1.46],[17.0,1.48],[19.0,1.52],[21.0,1.47],[23.0,1.48],[25.0,1.56],[27.0,1.46],[29.0,1.41],[31.0,1.35],[33.0,1.33],[35.0,1.34]],"olymp":[[1.0,1.7],[3.0,1.59],[5.0,1.6],[7.0,1.51],[9.0,1.55],[11.0,1.55],[13.0,1.55],[15.0,1.51],[17.0,1.51],[19.0,1.54],[21.0,1.5],[23.0,1.49],[25.0,1.42],[27.0,1.41],[29.0,1.4],[31.0,1.36],[33.0,1.31],[35.0,1.27]],"lcb":[[1.0,1.73],[3.0,1.61],[5.0,1.59],[7.0,1.54],[9.0,1.51],[11.0,1.47],[13.0,1.45],[15.0,1.48],[17.0,1.41],[19.0,1.42],[21.0,1.38],[23.0,1.43],[25.0,1.43],[27.0,1.37],[29.0,1.39],[31.0,1.35],[33.0,1.34],[35.0,1.37]]}},{"spec":"EAGLE-3","target":"Qwen3-8B","draft":"RedHatAI/Qwen3-8B-Thinking-speculator.eagle3","cap":36,"series":{"aime":[[1.0,4.23],[3.0,4.53],[5.0,4.49],[7.0,3.81],[9.0,2.91],[11.0,2.17],[13.0,1.72],[15.0,1.47],[17.0,1.32],[19.0,1.27],[21.0,1.23],[23.0,1.2],[25.0,1.18],[27.0,1.16],[29.0,1.16],[31.0,1.15]],"math500":[[1.0,4.54],[3.0,4.69],[5.0,4.6],[7.0,4.01],[9.0,2.85],[11.0,2.18],[13.0,1.75],[15.0,1.47],[17.0,1.31],[19.0,1.27],[21.0,1.19],[23.0,1.18]],"olymp":[[1.0,3.96],[3.0,4.23],[5.0,4.22],[7.0,3.84],[9.0,2.97],[11.0,2.18],[13.0,1.7],[15.0,1.46],[17.0,1.3],[19.0,1.25],[21.0,1.19],[23.0,1.17],[25.0,1.16],[27.0,1.14],[29.0,1.15],[31.0,1.15],[33.0,1.17],[35.0,1.15]],"lcb":[[1.0,3.58],[3.0,3.98],[5.0,3.99],[7.0,3.52],[9.0,2.66],[11.0,2.05],[13.0,1.64],[15.0,1.4],[17.0,1.24],[19.0,1.17],[21.0,1.14],[23.0,1.11],[25.0,1.09],[27.0,1.09],[29.0,1.09],[31.0,1.1],[33.0,1.1],[35.0,1.09]]}},{"spec":"EAGLE-3","target":"Llama-3.1-8B","draft":"yuhuili/EAGLE3-LLaMA3.1-Instruct-8B","cap":36,"series":{"aime":[[1.0,3.25],[3.0,1.94],[5.0,1.6],[7.0,1.32],[9.0,1.2],[11.0,1.12],[13.0,1.08],[15.0,1.08],[17.0,1.07],[19.0,1.06],[21.0,1.06],[23.0,1.08],[25.0,1.08],[27.0,1.08],[29.0,1.07],[31.0,1.08],[33.0,1.07],[35.0,1.07]],"math500":[[1.0,3.13],[3.0,2.09],[5.0,1.58],[7.0,1.28],[9.0,1.17],[11.0,1.1],[13.0,1.08],[15.0,1.06],[17.0,1.06],[19.0,1.05],[21.0,1.05],[23.0,1.05],[25.0,1.06],[27.0,1.06],[29.0,1.06],[31.0,1.06],[33.0,1.06],[35.0,1.06]],"olymp":[[1.0,3.28],[3.0,2.04],[5.0,1.58],[7.0,1.29],[9.0,1.17],[11.0,1.09],[13.0,1.06],[15.0,1.05],[17.0,1.05],[19.0,1.05],[21.0,1.06],[23.0,1.06],[25.0,1.05],[27.0,1.06],[29.0,1.06],[31.0,1.06],[33.0,1.06],[35.0,1.06]]}},{"spec":"EAGLE-3","target":"Qwen3-30B-A3B","draft":"RedHatAI/Qwen3-30B-A3B-Instruct-2507-speculator.eagle3","cap":16,"series":{"aime":[[1.0,2.91],[3.0,3.16],[5.0,2.83],[7.0,2.1],[9.0,1.9],[11.0,1.77],[13.0,1.7],[15.0,1.6]],"math500":[[1.0,3.07],[3.0,3.24],[5.0,2.94],[7.0,2.18],[9.0,1.93],[11.0,1.8],[13.0,1.67],[15.0,1.58]],"olymp":[[1.0,2.69],[3.0,2.9],[5.0,2.62],[7.0,2.03],[9.0,1.83],[11.0,1.78],[13.0,1.66],[15.0,1.6]],"lcb":[[1.0,2.38],[3.0,2.54],[5.0,2.17],[7.0,1.76],[9.0,1.66],[11.0,1.6],[13.0,1.5],[15.0,1.48]]}},{"spec":"EAGLE-3","target":"GPT-OSS-120B","draft":"RedHatAI/gpt-oss-120b-speculator.eagle3","cap":36,"series":{"aime":[[1.0,3.41],[3.0,3.57],[5.0,2.99],[7.0,1.58],[9.0,1.34],[11.0,1.25],[13.0,1.16],[15.0,1.13],[17.0,1.13],[19.0,1.12],[21.0,1.13],[23.0,1.12],[25.0,1.11],[27.0,1.12],[29.0,1.12],[31.0,1.09],[33.0,1.11]],"math500":[[1.0,3.78],[3.0,3.84],[5.0,3.24],[7.0,1.68],[9.0,1.4],[11.0,1.24],[13.0,1.18],[15.0,1.1],[17.0,1.09],[19.0,1.11],[21.0,1.09],[23.0,1.13],[25.0,1.1]],"olymp":[[1.0,3.22],[3.0,3.34],[5.0,2.84],[7.0,1.6],[9.0,1.35],[11.0,1.24],[13.0,1.18],[15.0,1.13],[17.0,1.13],[19.0,1.13],[21.0,1.13],[23.0,1.13],[25.0,1.14],[27.0,1.13],[29.0,1.13],[31.0,1.14],[33.0,1.14],[35.0,1.14]],"lcb":[[1.0,2.69],[3.0,2.72],[5.0,2.2],[7.0,1.39],[9.0,1.25],[11.0,1.18],[13.0,1.12],[15.0,1.08],[17.0,1.09],[19.0,1.09],[21.0,1.09],[23.0,1.08],[25.0,1.09],[27.0,1.08],[29.0,1.09],[31.0,1.09],[33.0,1.08],[35.0,1.08]]}},{"spec":"PARD","target":"Qwen3-8B","draft":"amd/PARD-Qwen3-0.6B","cap":36,"series":{"aime":[[1.0,4.21],[3.0,3.83],[5.0,3.28],[7.0,2.79],[9.0,2.56],[11.0,2.38],[13.0,2.13],[15.0,1.99],[17.0,1.83],[19.0,1.73],[21.0,1.65],[23.0,1.6],[25.0,1.61],[27.0,1.53],[29.0,1.54],[31.0,1.47],[33.0,1.56]],"math500":[[1.0,4.59],[3.0,3.93],[5.0,3.31],[7.0,2.86],[9.0,2.72],[11.0,2.5],[13.0,2.17],[15.0,2.03],[17.0,1.87],[19.0,1.79],[21.0,1.86],[23.0,1.82],[25.0,1.85],[27.0,1.9],[29.0,1.88],[31.0,1.73],[33.0,1.64],[35.0,1.62]],"olymp":[[1.0,3.78],[3.0,3.53],[5.0,3.1],[7.0,2.75],[9.0,2.5],[11.0,2.25],[13.0,2.08],[15.0,1.93],[17.0,1.8],[19.0,1.72],[21.0,1.74],[23.0,1.74],[25.0,1.72],[27.0,1.81],[29.0,1.78],[31.0,1.73],[33.0,1.73],[35.0,1.75]],"lcb":[[1.0,3.26],[3.0,3.25],[5.0,2.7],[7.0,2.47],[9.0,2.29],[11.0,2.15],[13.0,2.1],[15.0,2.0],[17.0,1.9],[19.0,1.78],[21.0,1.92],[23.0,1.9],[25.0,1.8],[27.0,1.65],[29.0,1.58],[31.0,1.48],[33.0,1.42],[35.0,1.37]]}},{"spec":"PARD","target":"Qwen3-30B-A3B","draft":"amd/PARD-Qwen3-0.6B","cap":16,"series":{"aime":[[1.0,4.06],[3.0,3.73],[5.0,3.1],[7.0,2.66],[9.0,2.41],[11.0,2.34],[13.0,2.05],[15.0,1.77]],"math500":[[1.0,4.48],[3.0,3.86],[5.0,3.22],[7.0,2.72],[9.0,2.5],[11.0,2.24],[13.0,2.05],[15.0,1.8]],"olymp":[[1.0,3.69],[3.0,3.32],[5.0,2.86],[7.0,2.54],[9.0,2.26],[11.0,2.14],[13.0,1.95],[15.0,1.75]],"lcb":[[1.0,3.13],[3.0,3.05],[5.0,2.58],[7.0,2.31],[9.0,2.12],[11.0,2.0],[13.0,1.82],[15.0,1.69]]}}],"lens":{"Qwen3-8B":{"aime":[3720,4867,5422,6552,6972,7887,9133,9693,12602,12617,13012,14928,15037,15857,16710,17757,19689,20088,21160,21384,25865,27283,27821,28124,34942,36836,36863,36863,36863,36863],"math500":[1939,2079,2799,3035,3078,3282,3296,3989,4175,4287,4645,4758,4845,4986,5273,5328,5415,5646,5823,6326,6602,6714,6986,7099,7559,7703,7985,8161,8419,8510,8562,8653,8914,9041,9056,9146,9471,9579,9624,9974,10297,10596,10809,11052,11621,11992,12128,12405,12757,12935,13107,13372,15050,18131,18196,18939,19407,20837,23056,27327,29478,33211,34521,36862],"olymp":[5216,7347,9555,9770,9806,9807,11079,11985,12145,12151,12722,13173,13438,14605,14698,14707,14752,14793,15010,15261,15640,15665,16192,16699,16986,17247,17427,17608,17685,17689,18005,18527,18664,18687,18693,18854,18958,19423,20374,20654,21348,21376,22382,25074,25214,25338,25583,25672,25683,26867,31892,36138,36604,36861,36861,36862,36862,36862,36862,36863,36863,36863,36863,36863],"lcb":[7854,8054,8650,9140,9914,10322,11402,11509,11861,12036,12101,12667,13554,15294,15981,16332,17491,18221,18337,19424,19453,19678,19693,19729,19758,19985,20104,20170,21241,22195,22796,23123,23527,23751,24310,27700,36857,36858,36859,36861,36861,36861,36862,36862,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863]},"GPT-OSS-120B":{"aime":[1821,2460,2966,3656,3689,4552,4891,5497,5639,6938,7355,7852,8827,10843,11953,12742,15402,16284,17384,18172,18917,20346,24678,25959,29168,34025,34553,36863,36863,36863],"math500":[466,583,824,1060,1095,1259,1407,1618,1663,1933,2041,2104,2213,2228,2346,2431,2622,2901,2919,3378,3408,3589,3704,3808,3877,4008,4575,4836,4863,4937,5091,5252,5371,5803,5912,6269,6497,6906,7087,7382,7492,8132,8459,9204,9960,10377,10387,10412,11276,11295,11344,11835,12554,12760,13427,13477,17874,20059,21106,25870,36863,36863,36863,36863],"olymp":[7501,7592,7755,8529,8725,9273,10143,10956,10974,12083,12708,14436,18875,19150,20492,23787,24524,27167,27359,29328,29389,30527,31875,32281,32507,33877,34103,34252,34682,36862,36862,36862,36862,36862,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863],"lcb":[10981,16869,27771,28048,32594,36862,36862,36862,36862,36862,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863,36863]}},"train":{"sharegpt":{"name":"ShareGPT","resp":{"hist":[0.00365,0.0,0.0,0.0,0.00182,0.0,0.00418,0.0,0.00116,0.00096,0.00112,0.00096,0.00491,0.00365,0.0049,0.00407,0.00895,0.00658,0.00976,0.01176,0.01295,0.01221,0.01278,0.01552,0.01981,0.02266,0.02996,0.03611,0.04417,0.05306,0.06659,0.08521,0.10668,0.111,0.08937,0.06909,0.05416,0.04061,0.04737,0.00143,0.00051,0.00013,8e-05,3e-05,1e-05,0.0,1e-05,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"q":[24,138,265,399,723,789],"over2k":0.0},"conv":{"hist":[0.0,0.0,0.0,0.0,5e-05,0.0,0.0001,0.0,0.0,0.0,0.00015,0.00015,0.0004,0.003,0.0007,0.00035,0.001,0.0007,0.0007,0.00175,0.00155,0.00185,0.00175,0.00165,0.0024,0.00215,0.00435,0.0061,0.00705,0.01,0.0129,0.0159,0.0225,0.0247,0.0277,0.0318,0.034,0.0376,0.04125,0.0431,0.05065,0.0535,0.06895,0.2249,0.2181,0.02945,0.00445,0.0024,0.00145,0.00075,0.0005,0.0002,0.00015,0.0001,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5e-05],"q":[173,695,1657,2055,2392,2913],"over2k":0.2566}},"ultrachat":{"name":"UltraChat","resp":{"hist":[0.0,0.0,0.0,0.0,5e-05,0.0,8e-05,0.0,9e-05,8e-05,0.00011,0.00019,0.00055,0.00076,0.00111,0.00128,0.00415,0.00368,0.00589,0.00763,0.01019,0.01028,0.01216,0.01568,0.02129,0.0265,0.03478,0.0446,0.05042,0.05422,0.07829,0.11132,0.13864,0.12294,0.08554,0.05212,0.03667,0.02601,0.01755,0.01102,0.01407,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"q":[48,152,257,358,686,1024],"over2k":0.0},"conv":{"hist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5e-05,0.0001,0.00025,0.00095,0.00155,0.00285,0.005,0.0104,0.0153,0.02395,0.0374,0.0557,0.0804,0.112,0.12585,0.13635,0.13055,0.11215,0.07735,0.0419,0.017,0.01015,0.00275,5e-05,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"q":[405,744,1061,1471,2195,3034],"over2k":0.0717}}},"histSpec":{"lo":1,"hi":65536,"per":4}};
+  var NS = 'http://www.w3.org/2000/svg';
+  var COL = { aime: 'var(--s1)', math500: 'var(--s2)', olymp: 'var(--s3)', lcb: 'var(--s4)' };
+  function el(tag, at, parent, txt) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e; }
+  function h(tag, cls, parent, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e; }
+  function fmtK(v) { return v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'K' : String(Math.round(v)); }
+  function place(tip, box, px, py) {
+    var w = tip.offsetWidth, hh = tip.offsetHeight, x = px + 16, y = py - hh / 2;
+    if (x + w > box.clientWidth - 6) x = px - w - 16;
+    tip.style.left = Math.max(6, x) + 'px'; tip.style.top = Math.max(6, Math.min(box.clientHeight - hh - 6, y)) + 'px';
   }
-  function show(el, bar, v) { el.textContent = v.toFixed(1); bar.style.width = Math.min(100, (v / (C + 1)) * 100) + '%'; }
-  function round() {
-    if (!demoOn) return;
-    if (n >= MAXN) { n = 0; emaA = emaB = null; }
-    var f = n / MAXN;
-    var pA = 0.08 + 0.74 * Math.exp(-4.2 * f);          // frozen draft drifts away from the target
-    var pB = 0.70 + 0.14 * Math.exp(-4.2 * f);          // adapted draft keeps tracking it
-    var kA = sample(pA), kB = sample(pB);
-    paint(A, kA); paint(B, kB);
-    setTimeout(function () {
-      emaA = emaA === null ? kA + 1 : 0.8 * emaA + 0.2 * (kA + 1);
-      emaB = emaB === null ? kB + 1 : 0.8 * emaB + 0.2 * (kB + 1);
-      show(elA, bA, emaA); show(elB, bB, emaB);
-      n += 900; elN.textContent = Math.min(n, MAXN).toLocaleString();
-      upd.classList.remove('flash'); void upd.offsetWidth; upd.classList.add('flash');
-    }, 340);
-  }
-  if (reduce) { demoOn = true; n = MAXN * 0.6; round(); demoOn = false; }
-  else setInterval(round, 1100);
+
+  // ---- acceptance length explorer ----
+  (function () {
+    var box = document.getElementById('vizAL'), svg = document.getElementById('alSvg'), tip = document.getElementById('alTip');
+    var W = 880, H = 380, L = 52, R = 20, T = 14, B = 44, XMAX = 36;
+    var specs = [], cur = { spec: null, target: null };
+    D.pairs.forEach(function (p) { if (specs.indexOf(p.spec) < 0) specs.push(p.spec); });
+    function seg(id, items, key) {
+      var host = document.getElementById(id); host.textContent = '';
+      items.forEach(function (it) {
+        var b = h('button', '', host, it); b.type = 'button'; b.setAttribute('aria-pressed', String(cur[key] === it));
+        b.addEventListener('click', function () { cur[key] = it; if (key === 'spec') fixTarget(); draw(); });
+      });
+    }
+    function targets() { return D.pairs.filter(function (p) { return p.spec === cur.spec; }).map(function (p) { return p.target; }); }
+    function fixTarget() { var t = targets(); if (t.indexOf(cur.target) < 0) cur.target = t[0]; }
+    var lg = document.getElementById('alLg');
+    D.bench.forEach(function (b) { var s = h('span', '', lg); var i = h('i', '', s); i.style.borderTopColor = COL[b[0]]; s.appendChild(document.createTextNode(b[1])); });
+    function draw() {
+      seg('alSpec', specs, 'spec'); seg('alTgt', targets(), 'target');
+      var p = D.pairs.filter(function (q) { return q.spec === cur.spec && q.target === cur.target; })[0];
+      var ymax = 2; Object.keys(p.series).forEach(function (k) { p.series[k].forEach(function (pt) { ymax = Math.max(ymax, pt[1]); }); });
+      var step = ymax > 8 ? 2 : 1; ymax = Math.ceil((ymax + 0.15) / step) * step;
+      function X(v) { return L + (v / XMAX) * (W - L - R); }
+      function Y(v) { return T + (1 - (v - 1) / (ymax - 1)) * (H - T - B); }
+      svg.textContent = '';
+      var g = el('g', { 'class': 'plot' }, svg);
+      el('rect', { x: X(0), y: T, width: X(2) - X(0), height: H - T - B, fill: 'var(--s1)', opacity: .07 }, g);
+      el('text', { x: X(0) + 5, y: H - B - 20, 'font-size': 11 }, g, 'training');
+      el('text', { x: X(0) + 5, y: H - B - 7, 'font-size': 11 }, g, 'lengths');
+      for (var v = 1; v <= ymax; v += step) {
+        el('line', { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: v === 1 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': 1 }, g);
+        el('text', { x: L - 9, y: Y(v) + 4, 'text-anchor': 'end' }, g, String(v));
+      }
+      for (var x = 0; x <= XMAX; x += 4) el('text', { x: X(x), y: H - B + 18, 'text-anchor': 'middle' }, g, x === 0 ? '0' : x + 'K');
+      el('text', { x: (L + W - R) / 2, y: H - 6, 'text-anchor': 'middle' }, g, 'Output length (tokens)');
+      el('text', { x: 14, y: (T + H - B) / 2, 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + (T + H - B) / 2 + ')' }, g, 'Acceptance length');
+      D.bench.forEach(function (b) {
+        var s = p.series[b[0]]; if (!s) return;
+        el('path', { d: s.map(function (pt, i) { return (i ? 'L' : 'M') + X(pt[0]).toFixed(1) + ' ' + Y(pt[1]).toFixed(1); }).join(''), fill: 'none', stroke: COL[b[0]], 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, g);
+        var e = s[s.length - 1]; el('circle', { cx: X(e[0]), cy: Y(e[1]), r: 4, fill: COL[b[0]], stroke: '#fff', 'stroke-width': 2 }, g);
+      });
+      var hair = el('line', { y1: T, y2: H - B, stroke: 'var(--axis)', 'stroke-width': 1, visibility: 'hidden' }, g);
+      var dots = el('g', {}, g);
+      var hit = el('rect', { x: L, y: T, width: W - L - R, height: H - T - B, fill: 'transparent' }, g);
+      function move(ev) {
+        var r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+        var xv = Math.max(1, Math.min(XMAX - 1, Math.round(((sx - L) / (W - L - R) * XMAX - 1) / 2) * 2 + 1));
+        hair.setAttribute('x1', X(xv)); hair.setAttribute('x2', X(xv)); hair.setAttribute('visibility', 'visible');
+        dots.textContent = ''; tip.textContent = '';
+        h('div', 'hd', tip, (xv - 1) + 'K–' + (xv + 1) + 'K output tokens');
+        var any = false;
+        D.bench.forEach(function (b) {
+          var s = p.series[b[0]]; if (!s) return;
+          var pt = s.filter(function (q) { return q[0] === xv; })[0]; if (!pt) return; any = true;
+          el('circle', { cx: X(xv), cy: Y(pt[1]), r: 4.5, fill: COL[b[0]], stroke: '#fff', 'stroke-width': 2 }, dots);
+          var row = h('div', 'r', tip); var i = h('i', '', row); i.style.borderTopColor = COL[b[0]]; h('b', '', row, pt[1].toFixed(1)); h('span', '', row, b[1]);
+        });
+        if (!any) h('div', 'r', tip, 'No responses reach this length');
+        tip.classList.add('on');
+        var br = box.getBoundingClientRect(); place(tip, box, ev.clientX - br.left, ev.clientY - br.top);
+      }
+      hit.addEventListener('pointermove', move);
+      hit.addEventListener('pointerleave', function () { tip.classList.remove('on'); hair.setAttribute('visibility', 'hidden'); dots.textContent = ''; });
+      var note = document.getElementById('alNote'); note.textContent = 'Draft checkpoint: ';
+      h('code', '', note, p.draft);
+      note.appendChild(document.createTextNode(p.cap < 30 ? '. This run was capped at 16K output tokens.' : '.'));
+    }
+    cur.spec = specs[0]; fixTarget(); draw();
+  })();
+
+  // ---- length distribution ----
+  (function () {
+    var box = document.getElementById('vizLen'), svg = document.getElementById('lenSvg'), tip = document.getElementById('lenTip');
+    var W = 880, L = 168, R = 92, T = 30, RH = 50, LO = 16, HI = 65536, kind = 'resp';
+    var rows = [{ t: 'train', k: 'sharegpt', name: 'ShareGPT' }, { t: 'train', k: 'ultrachat', name: 'UltraChat' }];
+    D.bench.forEach(function (b) { rows.push({ t: 'bench', k: b[0], name: b[1] }); });
+    var H = T + rows.length * RH + 40;
+    function X(v) { return L + Math.log(Math.max(v, LO) / LO) / Math.log(HI / LO) * (W - L - R); }
+    function qt(a, p) { return a[Math.min(a.length - 1, Math.floor(p * a.length))]; }
+    function rnd(i) { var x = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return x - Math.floor(x); }
+    function stats(r) {
+      if (r.t === 'train') { var s = D.train[r.k][kind]; return { q25: s.q[1], med: s.q[2], q75: s.q[3], over: s.over2k }; }
+      var a = D.lens['Qwen3-8B'][r.k];
+      return { q25: qt(a, .25), med: qt(a, .5), q75: qt(a, .75), over: a.filter(function (v) { return v > 2048; }).length / a.length };
+    }
+    function draw() {
+      svg.textContent = '';
+      var g = el('g', { 'class': 'plot' }, svg), bottom = T + rows.length * RH;
+      [16, 64, 256, 1024, 4096, 16384, 65536].forEach(function (v) {
+        el('line', { x1: X(v), x2: X(v), y1: T, y2: bottom, stroke: 'var(--grid)', 'stroke-width': 1 }, g);
+        el('text', { x: X(v), y: bottom + 18, 'text-anchor': 'middle' }, g, v >= 1024 ? (v / 1024) + 'K' : String(v));
+      });
+      el('text', { x: (L + W - R) / 2, y: bottom + 38, 'text-anchor': 'middle' }, g, 'Length (tokens)');
+      el('text', { x: W - R + 14, y: T - 12, 'font-size': 11 }, g, 'median');
+      el('line', { x1: X(2048), x2: X(2048), y1: T - 6, y2: bottom, stroke: 'var(--muted)', 'stroke-width': 1 }, g);
+      el('text', { x: X(2048) + 6, y: T - 12, 'font-size': 11 }, g, '2K: training sequence limit');
+      el('line', { x1: L, x2: W - R, y1: T + 2 * RH, y2: T + 2 * RH, stroke: 'var(--axis)', 'stroke-width': 1 }, g);
+      rows.forEach(function (r, ri) {
+        var y0 = T + ri * RH, base = y0 + RH - 9, st = stats(r);
+        var wash = el('rect', { x: 0, y: y0, width: W, height: RH, fill: 'var(--soft)', opacity: 0 }, g);
+        el('text', { x: L - 14, y: y0 + RH / 2 + 4, 'text-anchor': 'end', 'class': 'strong', 'font-size': 13 }, g, r.name);
+        if (r.t === 'train') {
+          var hs = D.train[r.k][kind].hist.slice(), per = D.histSpec.per, mx = Math.max.apply(null, hs), d = ''; while (hs.length && hs[hs.length - 1] < mx * .004) hs.pop(); var started = false, lastx = 0;
+          hs.forEach(function (c, i) {
+            var v = Math.pow(2, (i + .5) / per); if (v < LO || v > HI) return;
+            var x = X(v), y = base - (c / mx) * (RH - 16);
+            d += (started ? 'L' : 'M' + x.toFixed(1) + ' ' + base + 'L') + x.toFixed(1) + ' ' + y.toFixed(1); started = true; lastx = x;
+          });
+          el('path', { d: d + 'L' + lastx.toFixed(1) + ' ' + base + 'Z', fill: 'var(--s1)', 'fill-opacity': .22, stroke: 'var(--s1)', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }, g);
+        } else {
+          D.lens['Qwen3-8B'][r.k].forEach(function (v, i) {
+            el('circle', { cx: X(v), cy: y0 + 12 + rnd(i + ri * 97) * (RH - 24), r: 3.6, fill: 'var(--s2)', 'fill-opacity': .78, stroke: '#fff', 'stroke-width': 1.2 }, g);
+          });
+        }
+        el('line', { x1: X(st.med), x2: X(st.med), y1: y0 + 6, y2: y0 + RH - 6, stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-linecap': 'round' }, g);
+        el('text', { x: W - R + 14, y: y0 + RH / 2 + 4, 'class': 'strong', 'font-size': 13 }, g, fmtK(st.med));
+        var hit = el('rect', { x: 0, y: y0, width: W, height: RH, fill: 'transparent', tabindex: 0 }, g);
+        function show(ev) {
+          wash.setAttribute('opacity', .7); tip.textContent = '';
+          h('div', 'hd', tip, r.name + (r.t === 'train' ? (kind === 'resp' ? ', assistant responses' : ', whole conversations') : ', Qwen3-8B outputs'));
+          [['Median', fmtK(st.med)], ['Middle half', fmtK(st.q25) + ' – ' + fmtK(st.q75)], ['Longer than 2K', Math.round(st.over * 100) + '%']].forEach(function (kv) {
+            var row = h('div', 'r', tip); h('b', '', row, kv[1]); h('span', '', row, kv[0]);
+          });
+          tip.classList.add('on');
+          var br = box.getBoundingClientRect(), sr = svg.getBoundingClientRect();
+          if (ev && ev.clientX != null && ev.type !== 'focus') place(tip, box, ev.clientX - br.left, ev.clientY - br.top);
+          else place(tip, box, sr.left - br.left + sr.width * .45, sr.top - br.top + (y0 + RH / 2) * sr.height / H);
+        }
+        function hide() { wash.setAttribute('opacity', 0); tip.classList.remove('on'); }
+        hit.addEventListener('pointermove', show); hit.addEventListener('pointerleave', hide);
+        hit.addEventListener('focus', show); hit.addEventListener('blur', hide);
+      });
+    }
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    document.querySelectorAll('#lenKind button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        kind = b.getAttribute('data-k');
+        document.querySelectorAll('#lenKind button').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+        draw();
+      });
+    });
+    draw();
+  })();
 })();
 </script>
 </body>
