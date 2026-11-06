@@ -306,7 +306,7 @@
 
     <div class="sub">
       <h2 class="rv" style="font-size:1.6rem">Making it pay off in wall-clock time</h2>
-      <p class="rv">A backward pass every round costs time, so higher acceptance length alone does not guarantee higher throughput. Two system choices close that gap.</p>
+      <p class="rv">A backward pass every round costs time, so higher acceptance length alone does not guarantee higher throughput. Two system choices close that gap, both implemented end-to-end in <b>SGLang 5.12</b>.</p>
       <div class="two">
         <div class="card rv"><i class="ic fas fa-layer-group"></i><h3>Strided, asynchronous updates</h3><p>TTS updates once every \(\mathcal{S}\) rounds and runs the update on a side CUDA stream, in parallel with the next \(\mathcal{S}-1\) speculate-verify rounds. The update stays off the critical path.</p></div>
         <div class="card rv"><i class="ic fas fa-users"></i><h3>Per-request LoRA for batching</h3><p>In a batch, one request's update must not disturb another's draft. TTS freezes the shared speculator and gives each request its own rank-16 LoRA adapter: 7.9&nbsp;MB per GPU on GPT-OSS-120B, versus about 1270&nbsp;MB for a full private copy.</p></div>
@@ -326,7 +326,7 @@
     <div class="stats rv">
       <div class="stat"><div class="num" data-to="72" data-suf="%">72%</div><div class="lbl">higher acceptance length, at best</div></div>
       <div class="stat"><div class="num" data-to="41" data-suf="%">41%</div><div class="lbl">higher acceptance length, on average</div></div>
-      <div class="stat"><div class="num" data-to="1.81" data-dec="2" data-suf="&times;">1.81&times;</div><div class="lbl">best batched throughput gain over EAGLE-3</div></div>
+      <div class="stat"><div class="num" data-to="2.4" data-dec="1" data-suf="&times;">2.4&times;</div><div class="lbl">best batched throughput gain over DFlash</div></div>
       <div class="stat"><div class="num" data-to="10">10</div><div class="lbl">target models, from 4B to 229B parameters</div></div>
     </div>
     <p class="lead center rv">Evaluated on DFlash, EAGLE-3 and PARD across the Qwen-3, Qwen-3.5, DeepSeek-R1, GPT-OSS, MiniMax and Llama3.1 families.</p>
@@ -356,19 +356,19 @@
 
     <div class="sub">
       <h3 class="rv">Throughput under batched serving</h3>
-      <p class="rv">Tokens per second on GPT-OSS-120B against NVIDIA's EAGLE-3 speculator, with per-request LoRA adapters and \(\mathcal{S}=10\). TTS is 1.3&ndash;1.8&times; faster at every batch size and benchmark. For a single request on Qwen3.5-122B, a stride of 5 gives 1.54&times; over DFlash on average and up to 1.71&times;.</p>
+      <p class="rv">Tokens per second on Qwen3.5-122B-A10B against the DFlash speculator, with per-request LoRA adapters and \(\mathcal{S}=10\). The baseline acceptance length on this target is low, so TTS has the most headroom here and improves throughput by up to 2.4&times;. For a single request, a stride of 5 gives 1.54&times; over DFlash on average and up to 1.71&times;.</p>
       <div class="tw rv">
         <table>
           <thead><tr><th>Benchmark</th><th>Approach</th><th>BS = 8</th><th>BS = 16</th><th>BS = 32</th><th>BS = 64</th></tr></thead>
           <tbody>
-            <tr><td class="l" rowspan="2">AIME 2024</td><td class="l">EAGLE-3</td><td>338.6</td><td>526.9</td><td>767.6</td><td>877.8</td></tr>
-            <tr class="ours"><td class="l">TTS</td><td>527.6<span class="sp">1.56&times;</span></td><td>708.1<span class="sp">1.34&times;</span></td><td>1264.0<span class="sp">1.65&times;</span></td><td>1353.1<span class="sp">1.54&times;</span></td></tr>
-            <tr><td class="l" rowspan="2">AIME 2025</td><td class="l">EAGLE-3</td><td>354.1</td><td>536.4</td><td>877.5</td><td>1053.1</td></tr>
-            <tr class="ours"><td class="l">TTS</td><td>480.3<span class="sp">1.36&times;</span></td><td>858.8<span class="sp">1.60&times;</span></td><td>1285.7<span class="sp">1.47&times;</span></td><td>1509.6<span class="sp">1.43&times;</span></td></tr>
-            <tr><td class="l" rowspan="2">GPQA Diamond</td><td class="l">EAGLE-3</td><td>360.3</td><td>562.7</td><td>865.5</td><td>1009.4</td></tr>
-            <tr class="ours"><td class="l">TTS</td><td>531.9<span class="sp">1.48&times;</span></td><td>884.9<span class="sp">1.57&times;</span></td><td>1328.4<span class="sp">1.53&times;</span></td><td>1635.7<span class="sp">1.62&times;</span></td></tr>
-            <tr><td class="l" rowspan="2">LiveCodeBench</td><td class="l">EAGLE-3</td><td>330.2</td><td>425.4</td><td>752.9</td><td>820.5</td></tr>
-            <tr class="ours"><td class="l">TTS</td><td>454.7<span class="sp">1.38&times;</span></td><td>771.4<span class="sp">1.81&times;</span></td><td>1141.7<span class="sp">1.52&times;</span></td><td>1341.1<span class="sp">1.63&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">AIME 2024</td><td class="l">DFlash</td><td>241.2</td><td>313.5</td><td>423.1</td><td>384.9</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>428.6<span class="sp">1.78&times;</span></td><td>551.7<span class="sp">1.76&times;</span></td><td>930.9<span class="sp">2.20&times;</span></td><td>585.1<span class="sp">1.52&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">GPQA Diamond</td><td class="l">DFlash</td><td>192.0</td><td>257.1</td><td>428.2</td><td>289.7</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>381.8<span class="sp">1.99&times;</span></td><td>543.9<span class="sp">2.12&times;</span></td><td>728.7<span class="sp">1.70&times;</span></td><td>521.6<span class="sp">1.80&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">TheoremQA</td><td class="l">DFlash</td><td>233.8</td><td>289.1</td><td>439.9</td><td>313.0</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>511.9<span class="sp">2.19&times;</span></td><td>661.3<span class="sp">2.29&times;</span></td><td>987.9<span class="sp">2.25&times;</span></td><td>663.5<span class="sp">2.12&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">OlympiadBench-Math</td><td class="l">DFlash</td><td>193.9</td><td>267.7</td><td>392.9</td><td>196.8</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>444.8<span class="sp">2.29&times;</span></td><td>575.8<span class="sp">2.15&times;</span></td><td>908.4<span class="sp">2.31&times;</span></td><td>466.9<span class="sp">2.37&times;</span></td></tr>
           </tbody>
         </table>
       </div>
