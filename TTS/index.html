@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test-Time Speculation (NeurIPS 2026)</title>
+  <meta name="description" content="Test-Time Speculation (TTS): online distillation that adapts the speculative-decoding draft model at inference time, improving acceptance lengths by up to 72% and 41% on average.">
+  <meta property="og:title" content="Test-Time Speculation (NeurIPS 2026)">
+  <meta property="og:description" content="Speculative-decoding drafts fade on long outputs. TTS keeps them sharp by learning from the target's own verification pass, at test time.">
+  <meta property="og:image" content="https://avinkumarut.github.io/TTS/static/images/tts-intro.png">
+  <meta property="og:url" content="https://avinkumarut.github.io/TTS/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <script>window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root {
+      --ink: #1c1e26; --muted: #5b6070; --accent: #bf5700; --accent2: #ff9d3c; --teal: #18a999;
+      --night: #0d1020; --night2: #1a1f3a; --card: #ffffff; --soft: #f5f6fa; --line: #e4e6ee;
+      --ok: #1faa6b; --bad: #e5484d;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: 'Inter', sans-serif; color: var(--ink); line-height: 1.7; background: #fff; font-size: 17px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+    /* nav */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: center; gap: 26px;
+          padding: 12px 16px; font-size: 0.86rem; font-weight: 600; transition: background .3s, box-shadow .3s; }
+    nav a { color: rgba(255,255,255,.75); }
+    nav a:hover { color: #fff; text-decoration: none; }
+    nav.solid { background: rgba(13,16,32,.88); backdrop-filter: blur(10px); box-shadow: 0 2px 18px rgba(0,0,0,.25); }
+    @media (max-width: 640px) { nav { gap: 14px; font-size: .76rem; } }
+
+    /* hero */
+    .hero { position: relative; overflow: hidden; color: #fff; text-align: center; padding: 120px 0 84px;
+            background: radial-gradient(1100px 520px at 15% -10%, #3a2a6a 0%, transparent 60%),
+                        radial-gradient(900px 500px at 95% 10%, #7a3300 0%, transparent 55%),
+                        linear-gradient(160deg, var(--night) 0%, var(--night2) 100%); }
+    .hero::before { content: ""; position: absolute; inset: 0; opacity: .16;
+            background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+            background-size: 44px 44px; mask-image: radial-gradient(ellipse at center, #000 20%, transparent 72%); -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 72%); }
+    .hero > * { position: relative; }
+    .pill { display: inline-block; padding: 5px 16px; border-radius: 999px; font-size: .82rem; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: #ffd9b0; border: 1px solid rgba(255,157,60,.5); background: rgba(255,157,60,.12); }
+    h1 { font-size: clamp(2.5rem, 7vw, 4.6rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; margin: 22px 0 14px;
+         background: linear-gradient(92deg, #fff 0%, #ffd9b0 40%, var(--accent2) 70%, #fff 100%); background-size: 200% auto;
+         -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 7s linear infinite; }
+    @keyframes shine { to { background-position: -200% center; } }
+    .tag { font-size: clamp(1.05rem, 2.4vw, 1.3rem); color: rgba(255,255,255,.82); max-width: 720px; margin: 0 auto 26px; }
+    .authors { font-size: 1.1rem; font-weight: 600; }
+    .authors a { color: #fff; margin: 0 12px; border-bottom: 1px dashed rgba(255,255,255,.4); white-space: nowrap; }
+    .authors a:hover { text-decoration: none; border-bottom-color: var(--accent2); color: var(--accent2); }
+    .affil { color: rgba(255,255,255,.65); margin-top: 6px; font-size: .97rem; }
+    .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+    .btn { display: inline-flex; align-items: center; gap: 9px; padding: 10px 22px; border-radius: 999px; font-weight: 600; font-size: .96rem;
+           color: var(--night); background: #fff; transition: transform .2s, box-shadow .2s; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,157,60,.35); text-decoration: none; }
+    .btn.ghost { background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.3); cursor: default; }
+    .btn.ghost:hover { transform: none; box-shadow: none; }
+    .btn.ghost em { font-style: normal; font-size: .78rem; padding: 1px 9px; border-radius: 999px; background: rgba(255,157,60,.25); color: #ffd9b0; }
+
+    /* sections */
+    section { padding: 72px 0; }
+    section.soft { background: var(--soft); }
+    .kicker { text-align: center; color: var(--accent); font-weight: 700; font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
+    h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); font-weight: 800; letter-spacing: -.02em; text-align: center; margin: 0 0 22px; line-height: 1.2; }
+    h3 { font-size: 1.25rem; font-weight: 700; margin: 0 0 8px; }
+    p { margin: 0 0 16px; }
+    .lead { font-size: 1.12rem; color: #33374a; }
+    .center { text-align: center; }
+    .hl { background: linear-gradient(transparent 62%, rgba(255,157,60,.4) 62%); font-weight: 600; }
+
+    .tldr { margin: -44px auto 0; position: relative; z-index: 5; background: var(--card); border-radius: 18px; padding: 26px 30px;
+            box-shadow: 0 18px 50px rgba(13,16,32,.16); border: 1px solid var(--line); font-size: 1.1rem; }
+    .tldr b.t { color: var(--accent); }
+
+    figure { margin: 26px 0 10px; }
+    .fig { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 6px 24px rgba(13,16,32,.06);
+           cursor: zoom-in; transition: transform .25s, box-shadow .25s; }
+    .fig:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(13,16,32,.12); }
+    .fig img { width: 100%; height: auto; display: block; }
+    figure.narrow { max-width: 560px; margin-left: auto; margin-right: auto; }
+    figcaption { color: var(--muted); font-size: .9rem; margin-top: 10px; text-align: center; }
+
+    /* demo */
+    .demo { background: linear-gradient(160deg, var(--night), var(--night2)); color: #fff; border-radius: 20px; padding: 26px; margin-top: 28px;
+            box-shadow: 0 20px 50px rgba(13,16,32,.25); }
+    .demo-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .demo-head .ttl { font-weight: 700; }
+    .demo-head .cnt { font-family: 'JetBrains Mono', monospace; font-size: .85rem; color: #ffd9b0; }
+    .lane { display: grid; grid-template-columns: 150px 1fr 110px; gap: 14px; align-items: center; padding: 12px 0; }
+    .lane + .lane { border-top: 1px solid rgba(255,255,255,.1); }
+    .lane .name { font-weight: 700; font-size: .95rem; }
+    .lane .name small { display: block; font-weight: 400; color: rgba(255,255,255,.6); font-size: .76rem; }
+    .toks { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+    .tok { height: 34px; border-radius: 7px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); transition: background .25s, transform .25s, opacity .25s; }
+    .tok.draft { background: rgba(255,255,255,.32); }
+    .tok.ok { background: var(--ok); border-color: var(--ok); transform: scale(1.04); }
+    .tok.bad { background: var(--bad); border-color: var(--bad); }
+    .tok.dead { opacity: .25; }
+    .al { text-align: right; font-family: 'JetBrains Mono', monospace; }
+    .al b { font-size: 1.5rem; display: block; line-height: 1.1; }
+    .al span { font-size: .72rem; color: rgba(255,255,255,.6); }
+    .bar { grid-column: 2 / 4; height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; margin-top: -4px; }
+    .bar i { display: block; height: 100%; width: 0; border-radius: 3px; transition: width .4s; }
+    #barA i { background: var(--bad); } #barB i { background: linear-gradient(90deg, var(--accent2), var(--ok)); }
+    .flash { animation: flash .5s; } @keyframes flash { 0% { text-shadow: 0 0 14px var(--accent2); color: var(--accent2);} 100% { text-shadow: none; } }
+    .demo-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: .78rem; color: rgba(255,255,255,.6); }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 5px 0 12px; }
+    @media (max-width: 640px) { .lane { grid-template-columns: 1fr; } .al { text-align: left; } .bar { grid-column: 1; } }
+
+    /* steps */
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 28px; }
+    .step { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; position: relative; transition: transform .25s, box-shadow .25s, border-color .25s; }
+    .step:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(13,16,32,.1); border-color: var(--accent2); }
+    .step .n { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-weight: 800; margin-bottom: 14px;
+               background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+    .step p { font-size: .96rem; color: #3c4052; margin: 0; }
+    .eq { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 8px 18px; margin: 24px 0 8px; font-size: .95rem; }
+    .eqnote { font-size: .9rem; color: var(--muted); text-align: center; }
+    .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; margin-top: 30px; }
+    .two .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+    .two .card i.ic { color: var(--accent); font-size: 1.3rem; margin-bottom: 10px; display: block; }
+    .two .card p { font-size: .96rem; margin: 0; color: #3c4052; }
+
+    /* stats */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 8px 0 36px; }
+    .stat { border-radius: 16px; padding: 22px 18px; text-align: center; color: #fff; background: linear-gradient(150deg, var(--night), var(--night2)); }
+    .stat .num { font-size: 2.5rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
+                 background: linear-gradient(90deg, #fff, var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .stat .lbl { font-size: .85rem; color: rgba(255,255,255,.72); margin-top: 6px; }
+
+    .vid { border-radius: 18px; overflow: hidden; box-shadow: 0 20px 50px rgba(13,16,32,.25); background: #0a0a0d; line-height: 0; }
+    .vid video { width: 100%; height: auto; display: block; }
+    .sub { margin-top: 44px; }
+    .tw { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 6px 14px; box-shadow: 0 6px 24px rgba(13,16,32,.06); }
+    table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+    th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:nth-child(-n+2), td.l { text-align: left; }
+    thead th { border-bottom: 2px solid var(--ink); font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; }
+    tr.ours td { font-weight: 700; background: #fff8f1; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .sp { color: var(--accent); font-weight: 600; font-size: .84em; margin-left: 4px; }
+
+    details { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 4px 24px; }
+    summary { cursor: pointer; font-weight: 700; padding: 14px 0; }
+    details p { text-align: justify; font-size: .98rem; }
+
+    pre { background: var(--night); color: #e8e9f3; border-radius: 14px; padding: 22px; overflow-x: auto; position: relative;
+          font-family: 'JetBrains Mono', monospace; font-size: .85rem; line-height: 1.6; margin: 0; }
+    .copy { position: absolute; top: 12px; right: 12px; font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 600; color: #fff;
+            background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 4px 12px; cursor: pointer; }
+    .copy:hover { background: var(--accent); border-color: var(--accent); }
+    .corr { font-size: 1rem; color: var(--ink); margin-bottom: 6px; } .corr i { color: var(--accent); margin-right: 6px; }
+    footer { text-align: center; color: var(--muted); font-size: .86rem; padding: 34px 0 46px; border-top: 1px solid var(--line); }
+
+    /* reveal + lightbox */
+    .rv { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .rv.in { opacity: 1; transform: none; }
+    #lb { position: fixed; inset: 0; background: rgba(13,16,32,.92); display: none; align-items: center; justify-content: center; z-index: 100; cursor: zoom-out; padding: 24px; }
+    #lb.on { display: flex; }
+    #lb img { max-width: 100%; max-height: 100%; background: #fff; border-radius: 10px; padding: 14px; }
+    @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } h1 { animation: none; } html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="#video">Video</a><a href="#problem">Problem</a><a href="#why">Why</a><a href="#method">Method</a><a href="#results">Results</a><a href="#abstract">Abstract</a><a href="#bibtex">BibTeX</a>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="pill">NeurIPS 2026</span>
+    <h1>Test-Time Speculation</h1>
+    <p class="tag">Speculative-decoding drafts fade on long outputs. We keep them sharp by letting them learn from the target model, while it is generating.</p>
+    <div class="authors">
+      <a href="https://avinkumarut.github.io/">Avinash Kumar</a>
+      <a href="https://www.ece.utexas.edu/people/faculty/sujay-sanghavi">Sujay Sanghavi</a>
+      <a href="https://www.poulamidas.com">Poulami Das</a>
+    </div>
+    <div class="affil">The University of Texas at Austin</div>
+    <div class="btns">
+      <a class="btn" href="https://arxiv.org/pdf/2605.09329"><i class="fas fa-file-pdf"></i>Paper</a>
+      <a class="btn" href="https://arxiv.org/abs/2605.09329"><i class="ai ai-arxiv"></i>arXiv</a>
+      <a class="btn" href="#video"><i class="fas fa-circle-play"></i>Video</a>
+      <span class="btn ghost"><i class="fab fa-github"></i>Code <em>Stay Tuned</em></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tldr rv">
+    <b class="t">TL;DR</b> &nbsp;Speculative decoding makes LLMs faster by letting a small draft model guess tokens that the big target model then checks. But the draft was trained on short text, and on long generations its guesses stop landing. <b>TTS</b> notices that every check <span class="hl">already tells the draft exactly what the target wanted</span>, and uses that signal to update the draft on the fly. No new data, no extra target calls, and the output stays exactly the target's.
+  </div>
+</div>
+
+<section id="video" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="kicker rv">Two-minute explainer</div>
+    <h2 class="rv">See it in action</h2>
+    <div class="vid rv">
+      <video controls preload="metadata" playsinline poster="static/images/video-poster.jpg">
+        <source src="static/videos/test-time-speculation.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="kicker rv">The problem</div>
+    <h2 class="rv">Speculators run out of steam</h2>
+    <p class="lead rv">The speedup from speculative decoding comes down to one number: the <b>acceptance length</b>, or how many draft tokens the target accepts per round. An acceptance length near 1 means the draft is contributing nothing.</p>
+    <p class="rv">That is where today's best speculators end up. DFlash, EAGLE-3 and PARD all start strong, then lose ground as the response grows. On LiveCodeBench with Qwen3-8B, EAGLE-3's acceptance length falls to 1.1 beyond about 20K tokens. Reasoning, coding and agentic workloads routinely produce outputs that long.</p>
+    <figure class="rv">
+      <div class="fig"><img src="static/images/qwen3-8B-AL.png" alt="Acceptance length over output length for DFlash, EAGLE-3 and PARD on Qwen3-8B"></div>
+      <figcaption>Acceptance length on four tasks with (a) DFlash, (b) EAGLE-3 and (c) PARD on Qwen3-8B. It drops steadily as generation length grows.</figcaption>
+    </figure>
+    <p class="rv">A bigger target does not fix it. The same decline shows up on Qwen3.5-35B, Qwen3.6-35B and Qwen3.5-122B.</p>
+    <figure class="rv">
+      <div class="fig"><img src="static/images/qwen3-scalability-AL.png" alt="Acceptance length over output length for larger Qwen targets"></div>
+      <figcaption>DFlash on (a) Qwen3.5-35B, (b) Qwen3.6-35B and (c) Qwen3.5-122B.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="why" class="soft">
+  <div class="wrap">
+    <div class="kicker rv">The diagnosis</div>
+    <h2 class="rv">The draft is far from home</h2>
+    <p class="lead rv">Speculators are small networks trained offline on short sequences, typically under 2K tokens. At inference they are asked to track the target across outputs many times longer, well outside what they saw in training.</p>
+    <p class="rv">The entropy curves show the two models pulling apart. As the output grows, the target becomes <em>more</em> confident about the next token. Over the same stretch, the draft becomes <em>less</em> able to predict the target's top choice. This happens for tokens that already appeared in the context and for unseen ones alike.</p>
+    <figure class="rv">
+      <div class="fig"><img src="static/images/diagnosis-panel.png" alt="Target entropy and draft cross-entropy over output length"></div>
+      <figcaption>Llama3.1-8B (target) with EAGLE-3 (draft). (a) Target entropy falls with output length. (b) The draft's cross-entropy on the target's top-1 token rises sharply. (c) The gap persists for both repeated and unseen tokens.</figcaption>
+    </figure>
+    <p class="center rv"><span class="hl">Closing the gap means adapting the draft at inference time.</span></p>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="kicker rv">The method</div>
+    <h2 class="rv">The teacher is already in the room</h2>
+    <p class="lead rv">Each round of speculative decoding runs the target over every draft token to verify it. That pass produces the target's full distribution at each position, which is exactly the supervision a distillation step needs. Standard speculative decoding uses it to accept or reject, then throws it away.</p>
+    <p class="rv">TTS keeps it. The target is the <b>teacher</b>, the draft is the <b>student</b>, and each verified canvas is a <b>training sample</b>. After verification the draft takes one gradient step, then drafts again.</p>
+
+    <div class="demo rv" id="demo">
+      <div class="demo-head">
+        <span class="ttl"><i class="fas fa-play" style="font-size:.8em;margin-right:8px;color:var(--accent2)"></i>Watch a generation unfold</span>
+        <span class="cnt">output tokens: <span id="ntok">0</span></span>
+      </div>
+      <div class="lane">
+        <div class="name">Frozen draft<small>trained offline, never updated</small></div>
+        <div class="toks" id="lnA"></div>
+        <div class="al"><b id="alA">–</b><span>acceptance length</span></div>
+        <div class="bar" id="barA"><i></i></div>
+      </div>
+      <div class="lane">
+        <div class="name">Draft + TTS<small id="upd">one gradient step per round</small></div>
+        <div class="toks" id="lnB"></div>
+        <div class="al"><b id="alB">–</b><span>acceptance length</span></div>
+        <div class="bar" id="barB"><i></i></div>
+      </div>
+      <div class="demo-foot">
+        <span>Illustrative animation of the mechanism, not measured data. See the figures below for real results.</span>
+        <span class="legend"><i style="background:var(--ok)"></i>accepted<i style="background:var(--bad)"></i>rejected<i style="background:rgba(255,255,255,.25)"></i>discarded</span>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step rv"><div class="n">1</div><h3>Draft</h3><p>The current draft \(q_t\) proposes a canvas of \(C\) tokens, as in ordinary speculative decoding.</p></div>
+      <div class="step rv"><div class="n">2</div><h3>Verify</h3><p>The target \(p\) scores the whole canvas in one forward pass and accepts a prefix by rejection sampling. The output distribution is exactly the target's.</p></div>
+      <div class="step rv"><div class="n">3</div><h3>Update</h3><p>The draft takes one gradient step toward the target's distributions on that canvas, with a regularizer that keeps it close to where it was.</p></div>
+    </div>
+
+    <div class="eq rv">\[
+      L_t(q) \;=\; \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(p(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{match the target}}
+      \;+\; \lambda \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(q_t(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{don't drift too far}}
+    \]</div>
+    <p class="eqnote rv">Early canvas positions get larger weights \(w_k\), since one rejection discards everything after it. TTS reuses the weights from each speculator's own training recipe.</p>
+
+    <div class="sub">
+      <h2 class="rv" style="font-size:1.6rem">Making it pay off in wall-clock time</h2>
+      <p class="rv">A backward pass every round costs time, so higher acceptance length alone does not guarantee higher throughput. Two system choices close that gap.</p>
+      <div class="two">
+        <div class="card rv"><i class="ic fas fa-layer-group"></i><h3>Strided, asynchronous updates</h3><p>TTS updates once every \(\mathcal{S}\) rounds and runs the update on a side CUDA stream, in parallel with the next \(\mathcal{S}-1\) speculate-verify rounds. The update stays off the critical path.</p></div>
+        <div class="card rv"><i class="ic fas fa-users"></i><h3>Per-request LoRA for batching</h3><p>In a batch, one request's update must not disturb another's draft. TTS freezes the shared speculator and gives each request its own rank-16 LoRA adapter: 7.9&nbsp;MB per GPU on GPT-OSS-120B, versus about 1270&nbsp;MB for a full private copy.</p></div>
+      </div>
+      <figure class="rv">
+        <div class="fig"><img src="static/images/implementation.png" alt="Execution timeline of strided, asynchronous TTS updates"></div>
+        <figcaption>Every \(\mathcal{S}\) rounds, a gradient update is dispatched to a side stream and overlaps with the following rounds on the main stream.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="soft">
+  <div class="wrap">
+    <div class="kicker rv">The results</div>
+    <h2 class="rv">The longer it runs, the more it helps</h2>
+    <div class="stats rv">
+      <div class="stat"><div class="num" data-to="72" data-suf="%">72%</div><div class="lbl">higher acceptance length, at best</div></div>
+      <div class="stat"><div class="num" data-to="41" data-suf="%">41%</div><div class="lbl">higher acceptance length, on average</div></div>
+      <div class="stat"><div class="num" data-to="1.81" data-dec="2" data-suf="&times;">1.81&times;</div><div class="lbl">best batched throughput gain over EAGLE-3</div></div>
+      <div class="stat"><div class="num" data-to="10">10</div><div class="lbl">target models, from 4B to 229B parameters</div></div>
+    </div>
+    <p class="lead center rv">Evaluated on DFlash, EAGLE-3 and PARD across the Qwen-3, Qwen-3.5, DeepSeek-R1, GPT-OSS, MiniMax and Llama3.1 families.</p>
+
+    <figure class="rv">
+      <div class="fig"><img src="static/images/tts-intro.png" alt="Acceptance length of three speculators and the improvement from TTS"></div>
+      <figcaption>LiveCodeBench on Qwen3-8B. (a) All three speculators decay toward an acceptance length of 1. (b) TTS adapts the draft in real time and consistently improves acceptance length.</figcaption>
+    </figure>
+
+    <div class="sub">
+      <h3 class="rv">Gains grow with output length</h3>
+      <p class="rv">Each update leaves the draft a little better matched to the response in progress, so the advantage compounds as generation continues.</p>
+      <figure class="rv">
+        <div class="fig"><img src="static/images/increasing-gain-tts.png" alt="TTS versus DFlash on AIME 2024 and LiveCodeBench"></div>
+        <figcaption>TTS versus DFlash on (a) AIME 2024 and (b) LiveCodeBench with Qwen3-8B.</figcaption>
+      </figure>
+    </div>
+
+    <div class="sub">
+      <h3 class="rv">Long agentic sessions</h3>
+      <p class="rv">On multi-turn agentic tasks from OpenThoughts with MiniMax-M2.5, DFlash loses acceptance length turn after turn. TTS holds it, and its lead reaches <b>86% at turn 15</b>.</p>
+      <figure class="rv">
+        <div class="fig"><img src="static/images/al_vs_turns.png" alt="Acceptance length across agentic turns with MiniMax-M2.5"></div>
+        <figcaption>(a) Acceptance length across turns. (b) Improvement of TTS over DFlash.</figcaption>
+      </figure>
+    </div>
+
+    <div class="sub">
+      <h3 class="rv">Throughput under batched serving</h3>
+      <p class="rv">Tokens per second on GPT-OSS-120B against NVIDIA's EAGLE-3 speculator, with per-request LoRA adapters and \(\mathcal{S}=10\). TTS is 1.3&ndash;1.8&times; faster at every batch size and benchmark. For a single request on Qwen3.5-122B, a stride of 5 gives 1.54&times; over DFlash on average and up to 1.71&times;.</p>
+      <div class="tw rv">
+        <table>
+          <thead><tr><th>Benchmark</th><th>Approach</th><th>BS = 8</th><th>BS = 16</th><th>BS = 32</th><th>BS = 64</th></tr></thead>
+          <tbody>
+            <tr><td class="l" rowspan="2">AIME 2024</td><td class="l">EAGLE-3</td><td>338.6</td><td>526.9</td><td>767.6</td><td>877.8</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>527.6<span class="sp">1.56&times;</span></td><td>708.1<span class="sp">1.34&times;</span></td><td>1264.0<span class="sp">1.65&times;</span></td><td>1353.1<span class="sp">1.54&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">AIME 2025</td><td class="l">EAGLE-3</td><td>354.1</td><td>536.4</td><td>877.5</td><td>1053.1</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>480.3<span class="sp">1.36&times;</span></td><td>858.8<span class="sp">1.60&times;</span></td><td>1285.7<span class="sp">1.47&times;</span></td><td>1509.6<span class="sp">1.43&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">GPQA Diamond</td><td class="l">EAGLE-3</td><td>360.3</td><td>562.7</td><td>865.5</td><td>1009.4</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>531.9<span class="sp">1.48&times;</span></td><td>884.9<span class="sp">1.57&times;</span></td><td>1328.4<span class="sp">1.53&times;</span></td><td>1635.7<span class="sp">1.62&times;</span></td></tr>
+            <tr><td class="l" rowspan="2">LiveCodeBench</td><td class="l">EAGLE-3</td><td>330.2</td><td>425.4</td><td>752.9</td><td>820.5</td></tr>
+            <tr class="ours"><td class="l">TTS</td><td>454.7<span class="sp">1.38&times;</span></td><td>771.4<span class="sp">1.81&times;</span></td><td>1141.7<span class="sp">1.52&times;</span></td><td>1341.1<span class="sp">1.63&times;</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3 class="rv">And the divergence shrinks</h3>
+      <p class="rv">Back to the diagnosis: with TTS, the draft's cross-entropy on the target's top choice no longer climbs the way it does for the frozen draft.</p>
+      <figure class="narrow rv">
+        <div class="fig"><img src="static/images/restore-divergence.png" alt="Cross-entropy of EAGLE-3 with and without TTS"></div>
+        <figcaption>Cross-entropy of EAGLE-3 on the Llama3.1-8B target's top-1 token, with and without TTS.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="abstract">
+  <div class="wrap">
+    <details class="rv">
+      <summary>Read the full abstract</summary>
+      <p>Speculative decoding accelerates LLM inference by using a fast draft model to generate tokens and a more accurate target model to verify them. Its performance depends on the <em>acceptance length</em>, or number of draft tokens accepted by the target. Our studies show that the acceptance length of even state-of-the-art speculators, like DFlash, EAGLE-3, and PARD, degrades with generation length, reaching values close to 1 (i.e., no speedup) within a few thousand output tokens, making speculators ineffective for long-response tasks. Acceptance lengths decline because most speculators are trained offline on short sequences, but are forced to match the target on much longer outputs at inference, well beyond their training distribution.</p>
+      <p>To address this issue, we propose <em>Test-Time Speculation (TTS)</em>, an online distillation approach that continuously adapts the speculator at test time. TTS leverages the key insight that the token verification step already invokes the target model for each draft token, providing the training signal needed to adapt the draft at no additional cost. Treating the draft as the student and the target as the teacher, TTS adjusts the draft over several speculation rounds, with each update improving the draft's accuracy as generation proceeds. Our results across ten models from the Qwen-3, Qwen-3.5, DeepSeek-R1, GPT-OSS, MiniMax, and Llama3.1 families show that TTS improves acceptance lengths over state-of-the-art speculators by up to 72% and 41% on average, with the benefits scaling with generation lengths.</p>
+    </details>
+  </div>
+</section>
+
+<section id="bibtex" style="padding-top:0">
+  <div class="wrap">
+    <h2 class="rv">BibTeX</h2>
+    <pre class="rv"><button class="copy" id="copy">Copy</button><code id="bib">@inproceedings{kumar2026test,
+  title     = {Test-Time Speculation},
+  author    = {Kumar, Avinash and Sanghavi, Sujay and Das, Poulami},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026}
+}</code></pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="corr"><i class="fas fa-envelope"></i> Correspondence to: <b>Avinash Kumar</b> &lt;<a href="mailto:avinkumar@utexas.edu">avinkumar@utexas.edu</a>&gt;</div>
+    <div>Department of Electrical and Computer Engineering, The University of Texas at Austin</div>
+  </div>
+</footer>
+
+<div id="lb"><img alt=""></div>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // nav
+  var nav = document.getElementById('nav');
+  addEventListener('scroll', function () { nav.classList.toggle('solid', scrollY > 60); }, { passive: true });
+
+  // lightbox
+  var lb = document.getElementById('lb'), lbi = lb.querySelector('img');
+  document.querySelectorAll('.fig img').forEach(function (im) {
+    im.parentNode.addEventListener('click', function () { lbi.src = im.src; lb.classList.add('on'); });
+  });
+  lb.addEventListener('click', function () { lb.classList.remove('on'); });
+  addEventListener('keydown', function (e) { if (e.key === 'Escape') lb.classList.remove('on'); });
+
+  // copy
+  document.getElementById('copy').addEventListener('click', function () {
+    var b = this; navigator.clipboard.writeText(document.getElementById('bib').innerText).then(function () {
+      b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1600);
+    });
+  });
+
+  // count-up
+  function countUp(el) {
+    var to = +el.dataset.to, dec = +(el.dataset.dec || 0), suf = el.dataset.suf || '', t0 = null;
+    if (reduce) return;
+    (function tick(ts) {
+      if (!t0) t0 = ts; var k = Math.min((ts - t0) / 1200, 1), e = 1 - Math.pow(1 - k, 3);
+      el.innerHTML = (to * e).toFixed(dec) + suf; if (k < 1) requestAnimationFrame(tick);
+    })(performance.now());
+  }
+
+  // reveal
+  var demoOn = false;
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (e.target.id === 'demo') demoOn = e.isIntersecting;
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      e.target.querySelectorAll('.num[data-to]').forEach(countUp);
+      if (e.target.id !== 'demo') io.unobserve(e.target);
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
+
+  // demo: illustrative simulation of the speculate-verify(-update) loop
+  var C = 8, MAXN = 24000;
+  function lane(id) { var el = document.getElementById(id), a = []; for (var i = 0; i < C; i++) { var d = document.createElement('div'); d.className = 'tok'; el.appendChild(d); a.push(d); } return a; }
+  var A = lane('lnA'), B = lane('lnB'), n = 0, emaA = null, emaB = null;
+  var elN = document.getElementById('ntok'), elA = document.getElementById('alA'), elB = document.getElementById('alB'),
+      bA = document.querySelector('#barA i'), bB = document.querySelector('#barB i'), upd = document.getElementById('upd');
+  function sample(p) { var k = 0; while (k < C && Math.random() < p) k++; return k; }
+  function paint(toks, k) {
+    toks.forEach(function (t, i) { t.className = 'tok draft'; });
+    setTimeout(function () {
+      toks.forEach(function (t, i) { t.className = 'tok ' + (i < k ? 'ok' : i === k ? 'bad' : 'dead'); });
+    }, 320);
+  }
+  function show(el, bar, v) { el.textContent = v.toFixed(1); bar.style.width = Math.min(100, (v / (C + 1)) * 100) + '%'; }
+  function round() {
+    if (!demoOn) return;
+    if (n >= MAXN) { n = 0; emaA = emaB = null; }
+    var f = n / MAXN;
+    var pA = 0.08 + 0.74 * Math.exp(-4.2 * f);          // frozen draft drifts away from the target
+    var pB = 0.70 + 0.14 * Math.exp(-4.2 * f);          // adapted draft keeps tracking it
+    var kA = sample(pA), kB = sample(pB);
+    paint(A, kA); paint(B, kB);
+    setTimeout(function () {
+      emaA = emaA === null ? kA + 1 : 0.8 * emaA + 0.2 * (kA + 1);
+      emaB = emaB === null ? kB + 1 : 0.8 * emaB + 0.2 * (kB + 1);
+      show(elA, bA, emaA); show(elB, bB, emaB);
+      n += 900; elN.textContent = Math.min(n, MAXN).toLocaleString();
+      upd.classList.remove('flash'); void upd.offsetWidth; upd.classList.add('flash');
+    }, 340);
+  }
+  if (reduce) { demoOn = true; n = MAXN * 0.6; round(); demoOn = false; }
+  else setInterval(round, 1100);
+})();
+</script>
+</body>
+</html>
