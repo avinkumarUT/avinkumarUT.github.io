@@ -178,7 +178,7 @@
 <body>
 
 <nav id="nav">
-  <a href="#abstract">Abstract</a><a href="#video">Video</a><a href="#bibtex">BibTeX</a>
+  <a href="#abstract">Overview</a><a href="#video">Video</a><a href="#bibtex">BibTeX</a>
 </nav>
 
 <header class="hero">
@@ -202,7 +202,7 @@
 
 <div class="wrap">
   <div class="tldr rv" id="abstract">
-    <b class="t">Abstract</b>
+    <b class="t">Overview</b>
     <p>Speculative decoding accelerates LLM inference by using a fast draft model to generate tokens and a more accurate target model to verify them. Its performance depends on the <em>acceptance length</em>, or number of draft tokens accepted by the target. Our studies show that the acceptance length of even state-of-the-art speculators, like DFlash, EAGLE-3, and PARD, degrades with generation length, reaching values close to 1 (i.e., no speedup) within a few thousand output tokens, making speculators ineffective for long-response tasks. Acceptance lengths decline because most speculators are trained offline on short sequences, but are forced to match the target on much longer outputs at inference, well beyond their training distribution.</p>
     <p>To address this issue, we propose <em>Test-Time Speculation (TTS)</em>, an online distillation approach that continuously adapts the speculator at test time. TTS leverages the key insight that the token verification step already invokes the target model for each draft token, providing the training signal needed to adapt the draft at no additional cost. Treating the draft as the student and the target as the teacher, TTS adjusts the draft over several speculation rounds, with each update improving the draft's accuracy as generation proceeds.</p>
   </div>
