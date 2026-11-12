@@ -190,7 +190,7 @@
   <div class="wrap">
     <span class="pill">NeurIPS 2026</span>
     <h1>Test-Time Speculation</h1>
-    <p class="tag">Speculative-decoding drafts fade on long outputs. We keep them sharp by letting them learn from the target model, while it is generating.</p>
+    <p class="tag">Online distillation that adapts the draft model to the target during generation, so that speculative decoding remains effective on long outputs.</p>
     <div class="authors">
       <a href="https://avinkumarut.github.io/">Avinash Kumar</a>
       <a href="https://www.ece.utexas.edu/people/faculty/sujay-sanghavi">Sujay Sanghavi</a>
@@ -214,8 +214,7 @@
 
 <section id="video" style="padding-bottom:0">
   <div class="wrap">
-    <div class="kicker rv">Two-minute explainer</div>
-    <h2 class="rv">See it in action</h2>
+    <h2 class="rv">A two-minute overview</h2>
     <div class="vid rv">
       <video controls preload="metadata" playsinline poster="static/images/video-poster.jpg">
         <source src="static/videos/test-time-speculation.mp4" type="video/mp4">
@@ -226,10 +225,9 @@
 
 <section id="problem">
   <div class="wrap">
-    <div class="kicker rv">The problem</div>
-    <h2 class="rv">Speculators run out of steam</h2>
-    <p class="lead rv">The speedup from speculative decoding comes down to one number: the <b>acceptance length</b>, or how many draft tokens the target accepts per round. An acceptance length near 1 means the draft is contributing nothing.</p>
-    <p class="rv">That is where today's best speculators end up. DFlash, EAGLE-3 and PARD all start strong, then lose ground as the response grows. On LiveCodeBench with Qwen3-8B, EAGLE-3's acceptance length falls to 1.1 beyond about 20K tokens. Reasoning, coding and agentic workloads routinely produce outputs that long.</p>
+    <h2 class="rv">Acceptance length degrades with output length</h2>
+    <p class="lead rv">The speedup from speculative decoding depends on the <b>acceptance length</b>, the number of draft tokens the target accepts per round. An acceptance length close to 1 means no speedup.</p>
+    <p class="rv">We find that the acceptance length of state-of-the-art speculators (DFlash, EAGLE-3, and PARD) degrades as the output grows. For example, on LiveCodeBench with Qwen3-8B, the acceptance length of EAGLE-3 drops to 1.1 beyond about 20K output tokens. Outputs of this length are common in reasoning, coding, and agentic workloads.</p>
     <div class="viz rv" id="vizAL">
       <h4>Acceptance length along the response</h4>
       <p class="sub">Tokens accepted per round, measured at each point of the output; 1 means no speedup. Pick a speculator and a target model.</p>
@@ -242,10 +240,10 @@
       <div class="tip" id="alTip"></div>
       <p class="note" id="alNote"></p>
     </div>
-    <p class="rv">A bigger target does not fix it, and neither does a different speculator. The same decline shows up across every pair above, from 8B to 122B targets.</p>
+    <p class="rv">The trend holds across the speculators and target models above, from 4B to 122B parameters.</p>
 
-    <h3 class="rv" style="margin-top:38px">Trained on short text, used on long text</h3>
-    <p class="rv">Why does this happen? Speculators are trained offline on instruction-following data such as <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a> and <a href="https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k" target="_blank" rel="noopener">UltraChat</a>, where a response is a few hundred tokens long. A reasoning model answering a benchmark question writes tens of thousands of tokens. The two barely overlap.</p>
+    <h3 class="rv" style="margin-top:38px">Speculators are trained on short sequences</h3>
+    <p class="rv">Speculators are trained offline on instruction-following datasets such as <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a> and <a href="https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k" target="_blank" rel="noopener">UltraChat</a>, where responses are a few hundred tokens long. In contrast, reasoning models produce tens of thousands of tokens per response, well beyond the speculator's training distribution.</p>
     <div class="viz rv" id="vizLen">
       <h4>Response length: training data versus reasoning outputs</h4>
       <p class="sub">Tokens on a log scale. Each dot is one response from Qwen3-8B with thinking enabled.</p>
@@ -262,7 +260,7 @@
       <summary>Experimental setup for these two plots</summary>
       <ul>
         <li><b>Serving stack:</b> vLLM <code>0.19.2rc1.dev208</code> (commit <code>1e9f19ca3</code>) with a small scheduler patch that logs the drafted and accepted tokens of every speculation round. PyTorch 2.11, NVIDIA H200 GPUs.</li>
-        <li><b>Decoding:</b> greedy (temperature 0), 16 speculative tokens per round, outputs capped at 36,864 tokens (16,384 for the Qwen3-30B-A3B runs). Thinking is enabled for Qwen targets and reasoning effort is high for GPT-OSS-120B.</li>
+        <li><b>Decoding:</b> greedy (temperature 0), 16 speculative tokens per round, outputs capped at 36,864 tokens (16,384 for the EAGLE-3 run on Qwen3-30B-A3B). Thinking is enabled for Qwen targets and reasoning effort is high for GPT-OSS targets.</li>
         <li><b>Speculators:</b> public checkpoints. The checkpoint name is shown under the plot.</li>
         <li><b>Acceptance length:</b> one plus the mean number of accepted draft tokens per round, averaged over 2K-token windows of output position. Windows that only a handful of responses reach are left out.</li>
         <li><b>Lengths:</b> ShareGPT and UltraChat are tokenized with the Qwen3 tokenizer on a random sample of 20K conversations each. Benchmark output lengths come from the Qwen3-8B runs; speculative decoding is lossless, so they do not depend on the speculator.</li>
@@ -273,43 +271,41 @@
 
 <section id="why" class="soft">
   <div class="wrap">
-    <div class="kicker rv">The diagnosis</div>
-    <h2 class="rv">The draft is far from home</h2>
-    <p class="lead rv">Speculators are small networks trained offline on short sequences, typically under 2K tokens. At inference they are asked to track the target across outputs many times longer, well outside what they saw in training.</p>
-    <p class="rv">The entropy curves show the two models pulling apart. As the output grows, the target becomes <em>more</em> confident about the next token. Over the same stretch, the draft becomes <em>less</em> able to predict the target's top choice. This happens for tokens that already appeared in the context and for unseen ones alike.</p>
+    <h2 class="rv">Why acceptance length degrades</h2>
+    <p class="lead rv">Speculators are trained offline on short sequences, typically under 2K tokens, but are forced to match the target on much longer outputs at inference, well beyond their training distribution.</p>
+    <p class="rv">We measure this divergence directly. As the output grows, the entropy of the target decreases, i.e., the target becomes <em>more</em> confident about the next token. At the same time, the cross-entropy of the draft on the target's top-1 token increases, i.e., the draft becomes <em>less</em> able to predict it. This holds both for tokens that already appear in the context and for unseen tokens.</p>
     <figure class="rv">
       <div class="fig"><img src="static/images/diagnosis-panel.png" alt="Target entropy and draft cross-entropy over output length"></div>
       <figcaption>Llama3.1-8B (target) with EAGLE-3 (draft). (a) Target entropy falls with output length. (b) The draft's cross-entropy on the target's top-1 token rises sharply. (c) The gap persists for both repeated and unseen tokens.</figcaption>
     </figure>
-    <p class="center rv"><span class="hl">Closing the gap means adapting the draft at inference time.</span></p>
+    <p class="center rv"><span class="hl">This motivates adapting the draft at test time.</span></p>
   </div>
 </section>
 
 <section id="method">
   <div class="wrap">
-    <div class="kicker rv">The method</div>
-    <h2 class="rv">The teacher is already in the room</h2>
-    <p class="lead rv">Each round of speculative decoding runs the target over every draft token to verify it. That pass produces the target's full distribution at each position, which is exactly the supervision a distillation step needs. Standard speculative decoding uses it to accept or reject, then throws it away.</p>
-    <p class="rv">TTS keeps it. The target is the <b>teacher</b>, the draft is the <b>student</b>, and each verified canvas is a <b>training sample</b>. After verification the draft takes one gradient step, then drafts again.</p>
+    <h2 class="rv">Test-Time Speculation</h2>
+    <p class="lead rv">The verification step of speculative decoding already invokes the target model for each draft token. This produces the target's distribution at every drafted position, which is the training signal needed to distill the target into the draft. Standard speculative decoding uses these distributions only to accept or reject tokens, and then discards them.</p>
+    <p class="rv">TTS uses this signal to adapt the draft online. It treats the target as the <b>teacher</b>, the draft as the <b>student</b>, and each verified canvas as a <b>training sample</b>. After each verification, the draft takes one gradient step before drafting the next canvas.</p>
 
     <div class="steps">
       <div class="step rv"><div class="n">1</div><h3>Draft</h3><p>The current draft \(q_t\) proposes a canvas of \(C\) tokens, as in ordinary speculative decoding.</p></div>
       <div class="step rv"><div class="n">2</div><h3>Verify</h3><p>The target \(p\) scores the whole canvas in one forward pass and accepts a prefix by rejection sampling. The output distribution is exactly the target's.</p></div>
-      <div class="step rv"><div class="n">3</div><h3>Update</h3><p>The draft takes one gradient step toward the target's distributions on that canvas, with a regularizer that keeps it close to where it was.</p></div>
+      <div class="step rv"><div class="n">3</div><h3>Update</h3><p>The draft takes one gradient step toward the target's distributions on that canvas, with a regularizer that keeps it close to its previous state.</p></div>
     </div>
 
     <div class="eq rv">\[
-      L_t(q) \;=\; \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(p(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{match the target}}
-      \;+\; \lambda \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(q_t(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{don't drift too far}}
+      L_t(q) \;=\; \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(p(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{distillation}}
+      \;+\; \lambda \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(q_t(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{regularization}}
     \]</div>
-    <p class="eqnote rv">Early canvas positions get larger weights \(w_k\), since one rejection discards everything after it. TTS reuses the weights from each speculator's own training recipe.</p>
+    <p class="eqnote rv">Earlier canvas positions receive larger weights \(w_k\), since a rejection discards all subsequent tokens. TTS reuses the weights from each speculator's original training recipe.</p>
 
     <div class="sub">
-      <h2 class="rv" style="font-size:1.6rem">Making it pay off in wall-clock time</h2>
-      <p class="rv">A backward pass every round costs time, so higher acceptance length alone does not guarantee higher throughput. Two system choices close that gap, both implemented end-to-end in <b>SGLang 5.12</b>.</p>
+      <h2 class="rv" style="font-size:1.6rem">Translating acceptance length into throughput</h2>
+      <p class="rv">Updating the draft adds a backward pass and an optimizer step, so a higher acceptance length does not by itself guarantee higher throughput. We address this overhead with two optimizations, both implemented end-to-end in <b>SGLang 5.12</b>.</p>
       <div class="two">
-        <div class="card rv"><i class="ic fas fa-layer-group"></i><h3>Strided, asynchronous updates</h3><p>TTS updates once every \(\mathcal{S}\) rounds and runs the update on a side CUDA stream, in parallel with the next \(\mathcal{S}-1\) speculate-verify rounds. The update stays off the critical path.</p></div>
-        <div class="card rv"><i class="ic fas fa-users"></i><h3>Per-request LoRA for batching</h3><p>In a batch, one request's update must not disturb another's draft. TTS freezes the shared speculator and gives each request its own rank-16 LoRA adapter: 7.9&nbsp;MB per GPU on GPT-OSS-120B, versus about 1270&nbsp;MB for a full private copy.</p></div>
+        <div class="card rv"><i class="ic fas fa-layer-group"></i><h3>Strided, asynchronous updates</h3><p>TTS updates the draft once every \(\mathcal{S}\) rounds and offloads the update to a dedicated CUDA stream that runs in parallel with the next \(\mathcal{S}-1\) speculate-verify rounds, keeping it off the critical path.</p></div>
+        <div class="card rv"><i class="ic fas fa-users"></i><h3>Per-request LoRA for batching</h3><p>In batched serving, an update driven by one request would corrupt the draft for every other request. TTS freezes the shared speculator and trains a rank-16 LoRA adapter per request, which takes 28.6&nbsp;MB per GPU on Qwen3.5-122B-A10B, versus about 2,445&nbsp;MB for a full private copy.</p></div>
       </div>
       <figure class="rv">
         <div class="fig"><img src="static/images/implementation.png" alt="Execution timeline of strided, asynchronous TTS updates"></div>
@@ -321,15 +317,14 @@
 
 <section id="results" class="soft">
   <div class="wrap">
-    <div class="kicker rv">The results</div>
-    <h2 class="rv">The longer it runs, the more it helps</h2>
+    <h2 class="rv">Results</h2>
     <div class="stats rv">
-      <div class="stat"><div class="num" data-to="72" data-suf="%">72%</div><div class="lbl">higher acceptance length, at best</div></div>
-      <div class="stat"><div class="num" data-to="41" data-suf="%">41%</div><div class="lbl">higher acceptance length, on average</div></div>
-      <div class="stat"><div class="num" data-to="2.4" data-dec="1" data-suf="&times;">2.4&times;</div><div class="lbl">best batched throughput gain over DFlash</div></div>
+      <div class="stat"><div class="num" data-to="72" data-suf="%">72%</div><div class="lbl">maximum improvement in acceptance length</div></div>
+      <div class="stat"><div class="num" data-to="41" data-suf="%">41%</div><div class="lbl">average improvement in acceptance length</div></div>
+      <div class="stat"><div class="num" data-to="2.4" data-dec="1" data-suf="&times;">2.4&times;</div><div class="lbl">maximum throughput improvement over DFlash in batched serving</div></div>
       <div class="stat"><div class="num" data-to="10">10</div><div class="lbl">target models, from 4B to 229B parameters</div></div>
     </div>
-    <p class="lead center rv">Evaluated on DFlash, EAGLE-3 and PARD across the Qwen-3, Qwen-3.5, DeepSeek-R1, GPT-OSS, MiniMax and Llama3.1 families.</p>
+    <p class="lead center rv">We evaluate TTS with the DFlash, EAGLE-3, and PARD speculators on target models from the Qwen-3, Qwen-3.5, DeepSeek-R1, GPT-OSS, MiniMax, and Llama3.1 families.</p>
 
     <figure class="rv">
       <div class="fig"><img src="static/images/tts-intro.png" alt="Acceptance length of three speculators and the improvement from TTS"></div>
@@ -337,8 +332,8 @@
     </figure>
 
     <div class="sub">
-      <h3 class="rv">Gains grow with output length</h3>
-      <p class="rv">Each update leaves the draft a little better matched to the response in progress, so the advantage compounds as generation continues.</p>
+      <h3 class="rv">Improvements scale with output length</h3>
+      <p class="rv">Each update improves the draft's accuracy on the current response, so the improvement over the baseline increases as generation proceeds.</p>
       <figure class="rv">
         <div class="fig"><img src="static/images/increasing-gain-tts.png" alt="TTS versus DFlash on AIME 2024 and LiveCodeBench"></div>
         <figcaption>TTS versus DFlash on (a) AIME 2024 and (b) LiveCodeBench with Qwen3-8B.</figcaption>
@@ -346,8 +341,8 @@
     </div>
 
     <div class="sub">
-      <h3 class="rv">Long agentic sessions</h3>
-      <p class="rv">On multi-turn agentic tasks from OpenThoughts with MiniMax-M2.5, DFlash loses acceptance length turn after turn. TTS holds it, and its lead reaches <b>86% at turn 15</b>.</p>
+      <h3 class="rv">Multi-turn agentic workloads</h3>
+      <p class="rv">On multi-turn agentic tasks from OpenThoughts with MiniMax-M2.5, the acceptance length of DFlash decreases with each turn, whereas TTS maintains it. The improvement over DFlash reaches <b>86% at turn 15</b>.</p>
       <figure class="rv">
         <div class="fig"><img src="static/images/al_vs_turns.png" alt="Acceptance length across agentic turns with MiniMax-M2.5"></div>
         <figcaption>(a) Acceptance length across turns. (b) Improvement of TTS over DFlash.</figcaption>
@@ -356,7 +351,7 @@
 
     <div class="sub">
       <h3 class="rv">Throughput under batched serving</h3>
-      <p class="rv">Tokens per second on Qwen3.5-122B-A10B against the DFlash speculator, with per-request LoRA adapters and \(\mathcal{S}=10\). The baseline acceptance length on this target is low, so TTS has the most headroom here and improves throughput by up to 2.4&times;. For a single request, a stride of 5 gives 1.54&times; over DFlash on average and up to 1.71&times;.</p>
+      <p class="rv">The table below reports throughput (tokens/sec) on Qwen3.5-122B-A10B relative to the DFlash speculator, with per-request LoRA adapters and \(\mathcal{S}=10\). As the baseline acceptance lengths are lower on this large target, TTS has more headroom and improves throughput by up to 2.4&times;. For a single request, \(\mathcal{S}=5\) improves throughput over DFlash by 1.54&times; on average and up to 1.71&times;.</p>
       <div class="tw rv">
         <table>
           <thead><tr><th>Benchmark</th><th>Approach</th><th>BS = 8</th><th>BS = 16</th><th>BS = 32</th><th>BS = 64</th></tr></thead>
@@ -375,8 +370,8 @@
     </div>
 
     <div class="sub">
-      <h3 class="rv">And the divergence shrinks</h3>
-      <p class="rv">Back to the diagnosis: with TTS, the draft's cross-entropy on the target's top choice no longer climbs the way it does for the frozen draft.</p>
+      <h3 class="rv">TTS reduces the draft&ndash;target divergence</h3>
+      <p class="rv">With TTS, the cross-entropy of the draft on the target's top-1 token no longer increases with output length, unlike the baseline draft.</p>
       <figure class="narrow rv">
         <div class="fig"><img src="static/images/restore-divergence.png" alt="Cross-entropy of EAGLE-3 with and without TTS"></div>
         <figcaption>Cross-entropy of EAGLE-3 on the Llama3.1-8B target's top-1 token, with and without TTS.</figcaption>
@@ -388,7 +383,7 @@
 <section id="abstract">
   <div class="wrap">
     <details class="rv">
-      <summary>Read the full abstract</summary>
+      <summary>Abstract</summary>
       <p>Speculative decoding accelerates LLM inference by using a fast draft model to generate tokens and a more accurate target model to verify them. Its performance depends on the <em>acceptance length</em>, or number of draft tokens accepted by the target. Our studies show that the acceptance length of even state-of-the-art speculators, like DFlash, EAGLE-3, and PARD, degrades with generation length, reaching values close to 1 (i.e., no speedup) within a few thousand output tokens, making speculators ineffective for long-response tasks. Acceptance lengths decline because most speculators are trained offline on short sequences, but are forced to match the target on much longer outputs at inference, well beyond their training distribution.</p>
       <p>To address this issue, we propose <em>Test-Time Speculation (TTS)</em>, an online distillation approach that continuously adapts the speculator at test time. TTS leverages the key insight that the token verification step already invokes the target model for each draft token, providing the training signal needed to adapt the draft at no additional cost. Treating the draft as the student and the target as the teacher, TTS adjusts the draft over several speculation rounds, with each update improving the draft's accuracy as generation proceeds. Our results across ten models from the Qwen-3, Qwen-3.5, DeepSeek-R1, GPT-OSS, MiniMax, and Llama3.1 families show that TTS improves acceptance lengths over state-of-the-art speculators by up to 72% and 41% on average, with the benefits scaling with generation lengths.</p>
     </details>
