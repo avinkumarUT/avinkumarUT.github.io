@@ -64,6 +64,7 @@
     .hl { font-weight: 600; color: var(--accent); }
 
     .tldr { background: var(--soft); border-radius: 8px; padding: 22px 26px; font-size: 1.04rem; line-height: 1.65; }
+    .tldr p { margin: 0 0 12px; } .tldr p:last-child { margin-bottom: 0; }
     .tldr b.t { display: block; font-size: .78rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
 
     figure { margin: 26px 0 10px; }
@@ -149,6 +150,8 @@
     th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
     th:nth-child(-n+2), td.l { text-align: left; }
     thead th { border-bottom: 2px solid var(--ink); font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; }
+    thead th.g { text-align: center; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    thead th.r { text-align: right; }
     tr.ours td { font-weight: 700; background: #fff8f1; }
     tbody tr:last-child td { border-bottom: 0; }
     .sp { color: var(--accent); font-weight: 600; font-size: .84em; margin-left: 4px; }
@@ -175,7 +178,7 @@
 <body>
 
 <nav id="nav">
-  <a href="#video">Video</a><a href="#bibtex">BibTeX</a>
+  <a href="#abstract">Abstract</a><a href="#video">Video</a><a href="#bibtex">BibTeX</a>
 </nav>
 
 <header class="hero">
@@ -198,8 +201,10 @@
 </header>
 
 <div class="wrap">
-  <div class="tldr rv">
-    <b class="t">Overview</b>Speculative decoding accelerates LLM inference by using a smaller, less accurate draft model to generate tokens and the larger target model to verify them. Draft models are typically trained offline on short sequences (e.g., <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a>, <a href="https://github.com/thunlp/UltraChat" target="_blank" rel="noopener">UltraChat</a>), but are forced to match the target on much longer outputs at inference. This is exacerbated in reasoning models, which produce tens of thousands of tokens before the final answer. Our key insight is that the verification step already invokes the target model for each draft token, <span class="hl">providing the training signal needed to adapt the draft at no additional cost</span>. <b>Test-Time Speculation (TTS)</b> uses this signal to continuously adapt the draft at test time.
+  <div class="tldr rv" id="abstract">
+    <b class="t">Abstract</b>
+    <p>Speculative decoding accelerates LLM inference by using a fast draft model to generate tokens and a more accurate target model to verify them. Its performance depends on the <em>acceptance length</em>, or number of draft tokens accepted by the target. Our studies show that the acceptance length of even state-of-the-art speculators, like DFlash, EAGLE-3, and PARD, degrades with generation length, reaching values close to 1 (i.e., no speedup) within a few thousand output tokens, making speculators ineffective for long-response tasks. Acceptance lengths decline because most speculators are trained offline on short sequences, but are forced to match the target on much longer outputs at inference, well beyond their training distribution.</p>
+    <p>To address this issue, we propose <em>Test-Time Speculation (TTS)</em>, an online distillation approach that continuously adapts the speculator at test time. TTS leverages the key insight that the token verification step already invokes the target model for each draft token, providing the training signal needed to adapt the draft at no additional cost. Treating the draft as the student and the target as the teacher, TTS adjusts the draft over several speculation rounds, with each update improving the draft's accuracy as generation proceeds.</p>
   </div>
 </div>
 
@@ -291,12 +296,12 @@
       <path class="aS" d="M312,86 L604,86" marker-end="url(#ahS)"/>
       <path class="aT" d="M756,154 C756,280 706,366 613,366" marker-end="url(#ahT)"/>
       <path class="aS" d="M308,366 C214,366 164,280 164,160" marker-end="url(#ahS)"/>
-      <text class="al" x="458" y="72" text-anchor="middle">canvas of&#160;<tspan class="m">C</tspan><tspan dx="4">draft tokens</tspan></text>
-      <text class="al" x="770" y="262">target distributions</text>
-      <text class="al dim" x="770" y="282">the training signal</text>
-      <text class="al" x="150" y="262" text-anchor="end">updated speculator</text>
-      <text class="al dim" x="150" y="282" text-anchor="end">drafts the next canvas</text>
-      <text class="al dim" x="460" y="222" text-anchor="middle">repeats every round</text>
+      <text class="al" x="458" y="72" text-anchor="middle">Canvas of&#160;<tspan class="m">C</tspan><tspan dx="4">draft tokens</tspan></text>
+      <text class="al" x="770" y="262">Target distributions</text>
+      <text class="al dim" x="770" y="282">The training signal</text>
+      <text class="al" x="150" y="262" text-anchor="end">Updated speculator</text>
+      <text class="al dim" x="150" y="282" text-anchor="end">Drafts the next canvas</text>
+      <text class="al dim" x="460" y="222" text-anchor="middle">Repeats every round</text>
       <!-- 1 Draft -->
       <rect class="bS" x="20" y="20" width="290" height="132" rx="8"/>
       <text class="role rS" x="42" y="50">Student &#183; Speculator</text>
@@ -322,18 +327,19 @@
       <div class="step rv"><div class="n">3</div><h3>Update</h3><p>The draft takes one gradient step toward the target's distributions on that canvas, with a regularizer that keeps it close to its previous state.</p></div>
     </div>
 
+    <p class="rv">Each update takes one optimization step on the loss below, which contains two terms. The first term is a distillation loss that pulls the speculator toward the target's distribution on the canvas. The second term is a regularizer that prevents the speculator from drifting too far from its current state.</p>
     <div class="eq rv">\[
       L_t(q) \;=\; \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(p(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{distillation}}
       \;+\; \lambda \underbrace{\sum_{k=1}^{C} w_k\, \mathrm{KL}\big(q_t(\cdot \mid x_{1:t+k-1}) \,\big\|\, q(\cdot \mid x_{1:t+k-1})\big)}_{\text{regularization}}
     \]</div>
-    <p class="eqnote rv">Earlier canvas positions receive larger weights \(w_k\), since a rejection discards all subsequent tokens. TTS reuses the weights from each speculator's original training recipe.</p>
+    <p class="eqnote rv">where \(p\) is the target, \(q_t\) is the current speculator, \(q\) is the updated speculator, \(C\) is the canvas length, and \(\lambda\) sets the strength of the regularizer. The weights \(w_k\) decrease with position \(k\), as a rejected token invalidates all subsequent canvas tokens.</p>
 
     <div class="sub">
       <h2 class="rv" style="font-size:1.6rem">Inference engine optimizations for throughput</h2>
-      <p class="rv">Updating the draft adds a backward pass and an optimizer step, so a higher acceptance length does not by itself guarantee higher throughput. We address this overhead with two optimizations, both implemented end-to-end in <b>SGLang 5.12</b>.</p>
+      <p class="rv">Adapting the speculator requires an additional backward pass and optimizer step. Thus, a higher acceptance length does not by itself guarantee higher end-to-end throughput. We address this with two optimizations, both implemented in <a href="https://github.com/sgl-project/sglang/tree/v0.5.12" target="_blank" rel="noopener">SGLang v0.5.12</a>, a production inference engine.</p>
       <div class="two">
         <div class="card rv"><i class="ic fas fa-layer-group"></i><h3>Strided, asynchronous updates</h3><p>TTS updates the draft once every \(\mathcal{S}\) rounds and offloads the update to a dedicated CUDA stream that runs in parallel with the next \(\mathcal{S}-1\) speculate-verify rounds, keeping it off the critical path.</p></div>
-        <div class="card rv"><i class="ic fas fa-users"></i><h3>Per-request LoRA for batching</h3><p>In batched serving, an update driven by one request would corrupt the draft for every other request. TTS freezes the shared speculator and trains a rank-16 LoRA adapter per request, which takes 28.6&nbsp;MB per GPU on Qwen3.5-122B-A10B, versus about 2,445&nbsp;MB for a full private copy.</p></div>
+        <div class="card rv"><i class="ic fas fa-users"></i><h3>Per-request LoRA for batching</h3><p>In batched serving, an update driven by one request would corrupt the draft for every other request. TTS freezes the shared speculator and trains a rank-16 LoRA adapter per request, which reduces the overhead of adapting a private speculator from about 2,445&nbsp;MB to 28.6&nbsp;MB per request on each GPU for Qwen3.5-122B-A10B. This enables a memory saving of about 86&times;.</p></div>
       </div>
       <figure class="rv">
         <div class="fig"><img src="static/images/implementation.png" alt="Execution timeline of strided, asynchronous TTS updates"></div>
@@ -364,16 +370,16 @@
       <p class="rv">Each update improves the draft's accuracy on the current response, so the improvement over the baseline increases as generation proceeds.</p>
       <figure class="rv">
         <div class="fig"><img src="static/images/increasing-gain-tts.png" alt="TTS versus DFlash on AIME 2024 and LiveCodeBench"></div>
-        <figcaption>TTS versus DFlash on (a) AIME 2024 and (b) LiveCodeBench with Qwen3-8B.</figcaption>
+        <figcaption>Acceptance length of TTS versus DFlash for (a) AIME 2024 and (b) LiveCodeBench on Qwen3-8B. The improvement (%) increases sharply with output length as TTS refines the drafter.</figcaption>
       </figure>
     </div>
 
     <div class="sub">
       <h3 class="rv">Multi-turn agentic workloads</h3>
-      <p class="rv">On multi-turn agentic tasks from OpenThoughts with MiniMax-M2.5, the acceptance length of DFlash decreases with each turn, whereas TTS maintains it. The improvement over DFlash reaches <b>86% at turn 15</b>.</p>
+      <p class="rv">We evaluate on multi-turn agentic tasks from OpenThoughts, orchestrated by the Terminus-2 agent protocol with MiniMax-M2.5 as the target. The acceptance length of DFlash falls from 3.1 to 1.8 over the session, whereas TTS sustains it between 3.3 and 3.4, improving over DFlash by <b>86% at turn 15</b>.</p>
       <figure class="rv">
         <div class="fig"><img src="static/images/al_vs_turns.png" alt="Acceptance length across agentic turns with MiniMax-M2.5"></div>
-        <figcaption>(a) Acceptance length across turns. (b) Improvement of TTS over DFlash.</figcaption>
+        <figcaption>Acceptance length (AL) of TTS versus DFlash on multi-turn agentic tasks from OpenThoughts with MiniMax-M2.5 as the target. (a) The AL of DFlash degrades as the session progresses, whereas TTS sustains it across turns. (b) The improvement (%) of TTS over DFlash grows with turns, reaching 86% at turn 15, as TTS keeps adapting the draft throughout the session.</figcaption>
       </figure>
     </div>
 
@@ -382,15 +388,16 @@
       <p class="rv">The table below reports throughput (tokens/sec) on Qwen3.5-122B-A10B relative to the DFlash speculator, with per-request LoRA adapters and \(\mathcal{S}=10\). As the baseline acceptance lengths are lower on this large target, TTS has more headroom and improves throughput by up to 2.4&times;. For a single request, \(\mathcal{S}=5\) improves throughput over DFlash by 1.54&times; on average and up to 1.71&times;.</p>
       <div class="tw rv">
         <table>
-          <thead><tr><th>Benchmark</th><th>Approach</th><th>BS = 8</th><th>BS = 16</th><th>BS = 32</th><th>BS = 64</th></tr></thead>
+          <thead><tr><th rowspan="2">Benchmark</th><th rowspan="2">Approach</th><th class="g" colspan="4">Batch Size</th></tr>
+            <tr><th class="r">8</th><th class="r">16</th><th class="r">32</th><th class="r">64</th></tr></thead>
           <tbody>
-            <tr><td class="l" rowspan="2">AIME 2024</td><td class="l">DFlash</td><td>241.2</td><td>313.5</td><td>423.1</td><td>384.9</td></tr>
+            <tr><td class="l" rowspan="2"><a href="https://huggingface.co/datasets/MathArena/aime_2024_I" target="_blank" rel="noopener">AIME 2024</a></td><td class="l">DFlash</td><td>241.2</td><td>313.5</td><td>423.1</td><td>384.9</td></tr>
             <tr class="ours"><td class="l">TTS</td><td>428.6<span class="sp">1.78&times;</span></td><td>551.7<span class="sp">1.76&times;</span></td><td>930.9<span class="sp">2.20&times;</span></td><td>585.1<span class="sp">1.52&times;</span></td></tr>
-            <tr><td class="l" rowspan="2">GPQA Diamond</td><td class="l">DFlash</td><td>192.0</td><td>257.1</td><td>428.2</td><td>289.7</td></tr>
+            <tr><td class="l" rowspan="2"><a href="https://huggingface.co/datasets/Idavidrein/gpqa" target="_blank" rel="noopener">GPQA Diamond</a></td><td class="l">DFlash</td><td>192.0</td><td>257.1</td><td>428.2</td><td>289.7</td></tr>
             <tr class="ours"><td class="l">TTS</td><td>381.8<span class="sp">1.99&times;</span></td><td>543.9<span class="sp">2.12&times;</span></td><td>728.7<span class="sp">1.70&times;</span></td><td>521.6<span class="sp">1.80&times;</span></td></tr>
-            <tr><td class="l" rowspan="2">TheoremQA</td><td class="l">DFlash</td><td>233.8</td><td>289.1</td><td>439.9</td><td>313.0</td></tr>
+            <tr><td class="l" rowspan="2"><a href="https://huggingface.co/datasets/TIGER-Lab/TheoremQA" target="_blank" rel="noopener">TheoremQA</a></td><td class="l">DFlash</td><td>233.8</td><td>289.1</td><td>439.9</td><td>313.0</td></tr>
             <tr class="ours"><td class="l">TTS</td><td>511.9<span class="sp">2.19&times;</span></td><td>661.3<span class="sp">2.29&times;</span></td><td>987.9<span class="sp">2.25&times;</span></td><td>663.5<span class="sp">2.12&times;</span></td></tr>
-            <tr><td class="l" rowspan="2">OlympiadBench-Math</td><td class="l">DFlash</td><td>193.9</td><td>267.7</td><td>392.9</td><td>196.8</td></tr>
+            <tr><td class="l" rowspan="2"><a href="https://huggingface.co/datasets/Hothan/OlympiadBench" target="_blank" rel="noopener">OlympiadBench-Math</a></td><td class="l">DFlash</td><td>193.9</td><td>267.7</td><td>392.9</td><td>196.8</td></tr>
             <tr class="ours"><td class="l">TTS</td><td>444.8<span class="sp">2.29&times;</span></td><td>575.8<span class="sp">2.15&times;</span></td><td>908.4<span class="sp">2.31&times;</span></td><td>466.9<span class="sp">2.37&times;</span></td></tr>
           </tbody>
         </table>
@@ -399,10 +406,10 @@
 
     <div class="sub">
       <h3 class="rv">TTS reduces the draft&ndash;target divergence</h3>
-      <p class="rv">With TTS, the cross-entropy of the draft on the target's top-1 token no longer increases with output length, unlike the baseline draft.</p>
+      <p class="rv">With TTS, the cross-entropy of the speculator on the target's top-1 token no longer increases with output length, as TTS keeps adapting the speculator to the target throughout generation.</p>
       <figure class="narrow rv">
         <div class="fig"><img src="static/images/restore-divergence.png" alt="Cross-entropy of EAGLE-3 with and without TTS"></div>
-        <figcaption>Cross-entropy of EAGLE-3 on the Llama3.1-8B target's top-1 token, with and without TTS.</figcaption>
+        <figcaption>Cross-entropy of EAGLE-3 on the Llama3.1-8B target's top-1 token. At longer output lengths, EAGLE-3 diverges from the target; TTS reduces this divergence by adapting the draft in real time.</figcaption>
       </figure>
     </div>
   </div>
