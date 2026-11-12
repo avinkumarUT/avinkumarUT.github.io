@@ -104,7 +104,7 @@
     .viz .tip .r b { color: var(--ink); font-weight: 600; min-width: 34px; font-variant-numeric: tabular-nums; }
     .viz .note { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
     .viz .note code { font-family: 'JetBrains Mono', monospace; font-size: .76rem; }
-    details.setup { margin: 14px 0 0; font-size: .88rem; color: var(--muted); }
+    details.setup { margin: 14px 0 26px; font-size: .88rem; color: var(--muted); }
     details.setup summary { cursor: pointer; font-weight: 600; color: var(--ink); }
     details.setup ul { margin: 8px 0 0; padding-left: 20px; } details.setup li { margin: 3px 0; }
     details.setup code { font-family: 'JetBrains Mono', monospace; font-size: .8rem; }
@@ -216,12 +216,12 @@
 
 <section id="problem">
   <div class="wrap">
-    <h2 class="rv">Acceptance length degrades with output length</h2>
-    <p class="lead rv">The speedup from speculative decoding depends on the <b>acceptance length</b>, the number of draft tokens the target accepts per round. An acceptance length close to 1 means no speedup.</p>
-    <p class="rv">We find that the acceptance length of state-of-the-art speculators (DFlash, EAGLE-3, and PARD) degrades as the output grows. For example, on LiveCodeBench with Qwen3-8B, the acceptance length of EAGLE-3 drops to 1.1 beyond about 20K output tokens. Outputs of this length are common in reasoning, coding, and agentic workloads.</p>
+    <h2 class="rv">Acceptance length degrades with generation length</h2>
+    <p class="lead rv">The speedup from speculative decoding depends on the number of draft tokens the target model accepts per round, called the <em>acceptance length</em>. An acceptance length of one means that only a single token is accepted per round, yielding no speedup.</p>
+    <p class="rv">Our studies show that the acceptance length of state-of-the-art speculators (EAGLE-3, DFlash, and PARD) degrades steadily with generation length. For example, on LiveCodeBench with Qwen3-8B, the acceptance length of EAGLE-3 drops to 1.1 after 20K output tokens, effectively eliminating the speedup.</p>
     <div class="viz rv" id="vizAL">
-      <h4>Acceptance length along the response</h4>
-      <p class="sub">Tokens accepted per round, measured at each point of the output; 1 means no speedup. Pick a speculator and a target model.</p>
+      <h4>Acceptance length with generation length</h4>
+      <p class="sub">The figure below shows the acceptance length as a function of output length for various speculator and target model pairs. A value close to 1 indicates no speedup with speculative decoding.</p>
       <div class="ctl">
         <div class="grp"><span class="lab">Speculator</span><div class="seg" id="alSpec" role="group" aria-label="Speculator"></div></div>
         <div class="grp"><span class="lab">Target</span><div class="seg" id="alTgt" role="group" aria-label="Target model"></div></div>
@@ -232,9 +232,13 @@
       <p class="note" id="alNote"></p>
     </div>
     <p class="rv">The trend holds across the speculators and target models above, from 4B to 122B parameters.</p>
+  </div>
+</section>
 
-    <h3 class="rv" style="margin-top:38px">Speculators are trained on short sequences</h3>
-    <p class="rv">Speculators are trained offline on instruction-following datasets such as <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a> and <a href="https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k" target="_blank" rel="noopener">UltraChat</a>, where responses are a few hundred tokens long. In contrast, reasoning models produce tens of thousands of tokens per response, well beyond the speculator's training distribution.</p>
+<section id="why" class="soft">
+  <div class="wrap">
+    <h2 class="rv">Why acceptance length degrades</h2>
+    <p class="lead rv">Speculators are typically trained on instruction-following datasets such as <a href="https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered" target="_blank" rel="noopener">ShareGPT</a> and <a href="https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k" target="_blank" rel="noopener">UltraChat</a>, which comprise sequences that are typically shorter than 2K tokens. In contrast, reasoning models produce tens of thousands of tokens before arriving at the final answer. Consequently, the speculator is forced to match the target at generation lengths well beyond its training distribution during inference.</p>
     <div class="viz rv" id="vizLen">
       <h4>Response length: training data versus reasoning outputs</h4>
       <p class="sub">Tokens on a log scale. Each dot is one response from Qwen3-8B with thinking enabled.</p>
@@ -248,7 +252,7 @@
       <p class="note">Generation was capped at 36,864 tokens, so the longest outputs pile up at that limit.</p>
     </div>
     <details class="setup rv">
-      <summary>Experimental setup for these two plots</summary>
+      <summary>Experimental setup for the interactive plots</summary>
       <ul>
         <li><b>Serving stack:</b> vLLM <code>0.19.2rc1.dev208</code> (commit <code>1e9f19ca3</code>) with a small scheduler patch that logs the drafted and accepted tokens of every speculation round. PyTorch 2.11, NVIDIA H200 GPUs.</li>
         <li><b>Decoding:</b> greedy (temperature 0), 16 speculative tokens per round, outputs capped at 36,864 tokens (16,384 for the EAGLE-3 run on Qwen3-30B-A3B). Thinking is enabled for Qwen targets and reasoning effort is high for GPT-OSS targets.</li>
@@ -257,14 +261,7 @@
         <li><b>Lengths:</b> ShareGPT and UltraChat are tokenized with the Qwen3 tokenizer on a random sample of 20K conversations each. Benchmark output lengths come from the Qwen3-8B runs; speculative decoding is lossless, so they do not depend on the speculator.</li>
       </ul>
     </details>
-  </div>
-</section>
-
-<section id="why" class="soft">
-  <div class="wrap">
-    <h2 class="rv">Why acceptance length degrades</h2>
-    <p class="lead rv">Speculators are trained offline on short sequences, typically under 2K tokens, but are forced to match the target on much longer outputs at inference, well beyond their training distribution.</p>
-    <p class="rv">We measure this divergence directly. As the output grows, the entropy of the target decreases, i.e., the target becomes <em>more</em> confident about the next token. At the same time, the cross-entropy of the draft on the target's top-1 token increases, i.e., the draft becomes <em>less</em> able to predict it. This holds both for tokens that already appear in the context and for unseen tokens.</p>
+    <p class="rv">We measure the resulting divergence directly. As the output grows, the entropy of the target decreases, i.e., the target becomes <em>more</em> confident about the next token. At the same time, the cross-entropy of the draft on the target's top-1 token increases, i.e., the draft becomes <em>less</em> able to predict it. This holds both for tokens that already appear in the context and for unseen tokens.</p>
     <figure class="rv">
       <div class="fig"><img src="static/images/diagnosis-panel.png" alt="Target entropy and draft cross-entropy over output length"></div>
       <figcaption>Llama3.1-8B (target) with EAGLE-3 (draft). (a) Target entropy falls with output length. (b) The draft's cross-entropy on the target's top-1 token rises sharply. (c) The gap persists for both repeated and unseen tokens.</figcaption>
